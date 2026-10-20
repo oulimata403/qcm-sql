@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Entraîne-toi en SQL grâce à des QCM gratuits avec corrections et explications.">
+  <meta name="description" content="Entraîne-toi gratuitement en SQL avec des QCM, une progression et des corrections détaillées.">
   <title>SQL Academy | QCM SQL gratuits</title>
 
   <style>
@@ -55,7 +55,7 @@
     .hero {
       background: var(--navy);
       color: white;
-      padding: 65px 7% 75px;
+      padding: 60px 7% 70px;
     }
 
     .hero-content { max-width: 760px; }
@@ -70,8 +70,8 @@
     }
 
     h1 {
-      font-size: clamp(32px, 5vw, 48px);
-      line-height: 1.15;
+      font-size: clamp(32px, 5vw, 46px);
+      line-height: 1.2;
       margin: 20px 0;
     }
 
@@ -81,7 +81,7 @@
       display: inline-block;
       background: var(--blue);
       color: white;
-      padding: 12px 20px;
+      padding: 11px 18px;
       border: none;
       border-radius: 8px;
       font-size: 15px;
@@ -91,24 +91,32 @@
     }
 
     .button:hover { opacity: 0.9; }
-    .button:focus-visible, a:focus-visible, input:focus-visible {
+
+    .button:focus-visible,
+    a:focus-visible,
+    input:focus-visible {
       outline: 3px solid #93c5fd;
       outline-offset: 3px;
     }
 
+    .button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     main {
-      max-width: 1050px;
+      max-width: 1000px;
       margin: auto;
       padding: 35px 20px 60px;
     }
 
-    section { margin-bottom: 45px; }
+    section { margin-bottom: 40px; }
     h2 { font-size: 27px; margin-bottom: 8px; }
     .intro { color: var(--muted); margin-top: 0; }
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       gap: 18px;
       margin-top: 22px;
     }
@@ -117,67 +125,132 @@
       background: white;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 22px;
+      padding: 20px;
     }
 
     .card .icon { font-size: 28px; }
-    .card h3 { margin: 10px 0 6px; }
+    .card h3 { margin: 8px 0; }
     .card p { color: var(--muted); font-size: 14px; }
 
-    .quiz {
+    .quiz, .results {
       background: white;
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 25px;
     }
 
-    .quiz-meta { color: var(--muted); font-size: 14px; }
-
-    .question {
-      border-top: 1px solid var(--border);
-      padding: 20px 0;
-    }
-
-    .question h3 { font-size: 17px; margin-top: 0; }
-
-    .option {
-      display: block;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin: 9px 0;
-      cursor: pointer;
-    }
-
-    .option:hover { background: #f1f5f9; }
-    .option input { margin-right: 9px; }
-
-    .feedback {
-      display: none;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 8px;
+    .quiz-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
       font-size: 14px;
     }
 
-    .feedback.correct {
-      display: block;
-      background: #f0fdf4;
-      color: #166534;
+    .progress-track {
+      height: 10px;
+      width: 100%;
+      background: #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 12px 0 25px;
     }
 
-    .feedback.incorrect {
-      display: block;
-      background: #fff7ed;
-      color: #9a3412;
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      background: var(--blue);
+      border-radius: 20px;
+      transition: width 0.25s ease;
     }
 
-    #result {
-      display: none;
+    .question h3 {
+      font-size: 21px;
+      line-height: 1.5;
+      margin: 15px 0 20px;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      margin: 10px 0;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .option:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .option:has(input:checked) {
       background: #eff6ff;
-      border-radius: 10px;
-      padding: 18px;
-      margin: 20px 0;
+      border-color: var(--blue);
+    }
+
+    .option input {
+      margin-top: 5px;
+      accent-color: var(--blue);
+    }
+
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 25px;
+    }
+
+    .secondary { background: #475569; }
+    .finish { background: var(--green); }
+
+    .message {
+      color: #b45309;
+      font-size: 14px;
+      min-height: 22px;
+      margin: 12px 0 0;
+    }
+
+    .results { margin-top: 20px; }
+
+    .score-circle {
+      width: 115px;
+      height: 115px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin: 20px auto;
+    }
+
+    .score-circle strong { font-size: 29px; }
+    .score-circle span { font-size: 12px; }
+
+    .result-summary { text-align: center; }
+
+    .review-item {
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .review-item h3 { font-size: 16px; }
+
+    .correct-text { color: var(--green); }
+    .wrong-text { color: #b45309; }
+
+    .explanation {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
     }
 
     footer {
@@ -188,12 +261,16 @@
       font-size: 13px;
     }
 
+    [hidden] { display: none !important; }
+
     @media (max-width: 600px) {
       header { padding: 16px 5%; }
       .hero { padding: 45px 5%; }
-      main { padding: 28px 15px 45px; }
+      main { padding: 25px 14px 45px; }
       nav a { margin-left: 0; margin-right: 12px; }
-      .quiz { padding: 17px; }
+      .quiz, .results { padding: 17px; }
+      .question h3 { font-size: 18px; }
+      .navigation .button { flex: 1; }
     }
   </style>
 </head>
@@ -204,7 +281,7 @@
       <div class="logo">SQL <span>ACADEMY</span></div>
       <div>
         <a href="#themes">Thèmes</a>
-        <a href="#quiz">Tester mes connaissances</a>
+        <a href="#quiz">Faire un quiz</a>
       </div>
     </nav>
   </header>
@@ -214,8 +291,8 @@
       <span class="tag">Apprentissage gratuit</span>
       <h1>Progresse en SQL, un QCM à la fois.</h1>
       <p>
-        Entraîne-toi sur les bases de données, teste tes connaissances
-        et comprends tes erreurs grâce à des corrections expliquées.
+        Teste tes connaissances, avance question par question
+        et comprends tes erreurs grâce aux explications.
       </p>
       <a class="button" href="#quiz">Commencer le quiz</a>
     </div>
@@ -225,26 +302,26 @@
     <section id="themes">
       <h2>Explore les thèmes SQL</h2>
       <p class="intro">
-        Apprends progressivement, des fondamentaux aux notions avancées.
+        Des fondamentaux aux notions avancées, progresse à ton rythme.
       </p>
 
       <div class="cards">
         <article class="card">
-          <div class="icon">📘</div>
+          <div class="icon" aria-hidden="true">📘</div>
           <h3>Fondamentaux SQL</h3>
           <p>SELECT, WHERE, DISTINCT et ORDER BY.</p>
         </article>
 
         <article class="card">
-          <div class="icon">🔗</div>
+          <div class="icon" aria-hidden="true">🔗</div>
           <h3>Jointures</h3>
           <p>INNER JOIN, LEFT JOIN et relations entre tables.</p>
         </article>
 
         <article class="card">
-          <div class="icon">📊</div>
+          <div class="icon" aria-hidden="true">📊</div>
           <h3>SQL avancé</h3>
-          <p>GROUP BY, sous-requêtes, CTE et fonctions de fenêtre.</p>
+          <p>Agrégations, sous-requêtes, CTE et fonctions de fenêtre.</p>
         </article>
       </div>
     </section>
@@ -252,29 +329,73 @@
     <section id="quiz">
       <h2>Quiz SQL — Niveau débutant</h2>
       <p class="intro">
-        Réponds aux cinq questions, puis consulte ton score et les explications.
+        Réponds aux cinq questions. Tu verras ton score et les corrections à la fin.
       </p>
 
-      <div class="quiz">
-        <p class="quiz-meta">5 questions · 1 point par bonne réponse</p>
+      <div class="quiz" id="quiz-panel">
+        <div class="quiz-meta">
+          <span id="question-counter">Question 1 sur 5</span>
+          <span id="answered-counter">0 réponse sur 5</span>
+        </div>
+
+        <div
+          class="progress-track"
+          role="progressbar"
+          aria-label="Progression du quiz"
+          aria-valuemin="0"
+          aria-valuemax="5"
+          aria-valuenow="0"
+          id="progress-track"
+        >
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
 
         <form id="quiz-form">
-          <div id="questions"></div>
-          <button class="button" type="submit">Corriger mes réponses</button>
-          <button class="button" type="button" id="retry"
-            style="background:#475569; margin-left:8px;">
-            Recommencer
-          </button>
-        </form>
+          <div id="question-container" class="question"></div>
 
-        <div id="result" role="status" aria-live="polite"></div>
+          <p id="navigation-message" class="message" role="status" aria-live="polite"></p>
+
+          <div class="navigation">
+            <button class="button secondary" type="button" id="previous-button">
+              ← Précédent
+            </button>
+            <button class="button" type="button" id="next-button">
+              Suivant →
+            </button>
+            <button class="button finish" type="submit" id="finish-button" hidden>
+              Voir mon résultat
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="results" id="results-panel" hidden>
+        <div class="result-summary">
+          <h2>Résultat du quiz</h2>
+          <p id="result-message">Voici ton bilan.</p>
+          <div class="score-circle">
+            <strong id="score-number">0/5</strong>
+            <span id="score-percent">0 %</span>
+          </div>
+          <p id="result-detail"></p>
+        </div>
+
+        <h2>Correction détaillée</h2>
+        <p class="intro">
+          Revois chaque réponse pour mieux comprendre les notions SQL.
+        </p>
+        <div id="review-container"></div>
+
+        <button class="button" type="button" id="retry-button">
+          Recommencer le quiz
+        </button>
       </div>
     </section>
   </main>
 
   <footer>
     <p><strong>SQL Academy</strong> — Un projet personnel pour apprendre SQL.</p>
-    <p>Des connaissances pratiques pour progresser en bases de données.</p>
+    <p>Apprendre, pratiquer et progresser en bases de données.</p>
   </footer>
 
   <script>
@@ -283,19 +404,19 @@
         text: "Quelle instruction permet de récupérer des données dans une table ?",
         options: ["INSERT", "SELECT", "UPDATE", "DELETE"],
         answer: 1,
-        explanation: "SELECT permet de lire et de récupérer des données."
+        explanation: "SELECT permet de lire et de récupérer des données dans une table."
       },
       {
         text: "Quelle clause filtre les lignes selon une condition ?",
         options: ["ORDER BY", "GROUP BY", "WHERE", "HAVING"],
         answer: 2,
-        explanation: "WHERE filtre les lignes avant le regroupement et l'agrégation."
+        explanation: "WHERE filtre les lignes avant le regroupement. HAVING sert à filtrer les groupes après l'agrégation."
       },
       {
         text: "Quelle fonction compte toutes les lignes d'un résultat ?",
         options: ["SUM(*)", "COUNT(*)", "AVG(*)", "TOTAL(*)"],
         answer: 1,
-        explanation: "COUNT(*) compte les lignes du résultat, y compris celles contenant des valeurs NULL."
+        explanation: "COUNT(*) compte toutes les lignes du résultat, même lorsqu'une colonne contient NULL."
       },
       {
         text: "Quelle jointure conserve toutes les lignes de la table de gauche ?",
@@ -307,72 +428,178 @@
         text: "Quelle clause permet de trier les résultats ?",
         options: ["SORT BY", "ORDER BY", "GROUP BY", "ARRANGE BY"],
         answer: 1,
-        explanation: "ORDER BY trie les résultats. ASC signifie croissant et DESC décroissant."
+        explanation: "ORDER BY trie les résultats. ASC indique l'ordre croissant et DESC l'ordre décroissant."
       }
     ];
 
-    const questionsContainer = document.getElementById("questions");
     const form = document.getElementById("quiz-form");
-    const result = document.getElementById("result");
+    const questionContainer = document.getElementById("question-container");
+    const questionCounter = document.getElementById("question-counter");
+    const answeredCounter = document.getElementById("answered-counter");
+    const progressTrack = document.getElementById("progress-track");
+    const progressFill = document.getElementById("progress-fill");
+    const previousButton = document.getElementById("previous-button");
+    const nextButton = document.getElementById("next-button");
+    const finishButton = document.getElementById("finish-button");
+    const navigationMessage = document.getElementById("navigation-message");
+    const quizPanel = document.getElementById("quiz-panel");
+    const resultsPanel = document.getElementById("results-panel");
+    const reviewContainer = document.getElementById("review-container");
 
-    function renderQuestions() {
-      questionsContainer.innerHTML = questions.map((q, i) => `
-        <div class="question" id="question-${i}">
-          <h3>${i + 1}. ${q.text}</h3>
-          ${q.options.map((option, j) => `
-            <label class="option">
-              <input type="radio" name="q${i}" value="${j}" required>
-              ${option}
-            </label>
-          `).join("")}
-          <div class="feedback" id="feedback-${i}"></div>
-        </div>
-      `).join("");
+    let currentQuestion = 0;
+    let answers = Array(questions.length).fill(null);
+
+    function renderQuestion() {
+      const q = questions[currentQuestion];
+
+      questionCounter.textContent =
+        `Question ${currentQuestion + 1} sur ${questions.length}`;
+
+      answeredCounter.textContent =
+        `${answers.filter(a => a !== null).length} réponse(s) sur ${questions.length}`;
+
+      progressFill.style.width =
+        `${(currentQuestion + 1) / questions.length * 100}%`;
+
+      progressTrack.setAttribute("aria-valuenow", currentQuestion + 1);
+
+      questionContainer.innerHTML = `
+        <h3>${currentQuestion + 1}. ${q.text}</h3>
+        ${q.options.map((option, index) => `
+          <label class="option">
+            <input
+              type="radio"
+              name="answer"
+              value="${index}"
+              ${answers[currentQuestion] === index ? "checked" : ""}
+            >
+            <span>${option}</span>
+          </label>
+        `).join("")}
+      `;
+
+      questionContainer.querySelectorAll('input[name="answer"]').forEach(input => {
+        input.addEventListener("change", () => {
+          answers[currentQuestion] = Number(input.value);
+          answeredCounter.textContent =
+            `${answers.filter(a => a !== null).length} réponse(s) sur ${questions.length}`;
+          navigationMessage.textContent = "";
+        });
+      });
+
+      previousButton.disabled = currentQuestion === 0;
+
+      const isLast = currentQuestion === questions.length - 1;
+      nextButton.hidden = isLast;
+      finishButton.hidden = !isLast;
+
+      navigationMessage.textContent = "";
     }
 
-    form.addEventListener("submit", function(event) {
+    previousButton.addEventListener("click", () => {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuestion();
+      }
+    });
+
+    nextButton.addEventListener("click", () => {
+      if (answers[currentQuestion] === null) {
+        navigationMessage.textContent =
+          "Choisis une réponse avant de continuer.";
+        return;
+      }
+
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        renderQuestion();
+      }
+    });
+
+    form.addEventListener("submit", event => {
       event.preventDefault();
 
-      let score = 0;
+      if (answers[currentQuestion] === null) {
+        navigationMessage.textContent =
+          "Choisis une réponse avant de terminer le quiz.";
+        return;
+      }
 
-      questions.forEach((q, i) => {
-        const selected = form.querySelector(`input[name="q${i}"]:checked`);
-        const feedback = document.getElementById(`feedback-${i}`);
-        const isCorrect = Number(selected.value) === q.answer;
+      const unanswered = answers.findIndex(answer => answer === null);
 
-        if (isCorrect) score++;
+      if (unanswered !== -1) {
+        currentQuestion = unanswered;
+        renderQuestion();
+        navigationMessage.textContent =
+          "Il reste une question sans réponse. Réponds-y avant de terminer.";
+        return;
+      }
 
-        feedback.className = "feedback " +
-          (isCorrect ? "correct" : "incorrect");
-
-        feedback.textContent =
-          (isCorrect ? "Bonne réponse ! " : "Réponse incorrecte. ") +
-          "Réponse attendue : " + q.options[q.answer] +
-          ". " + q.explanation;
-      });
-
-      result.style.display = "block";
-      result.innerHTML =
-        `<strong>Ton score : ${score} / ${questions.length}</strong>
-         <p>${Math.round(score / questions.length * 100)} % de réussite.</p>`;
-
-      result.scrollIntoView({ behavior: "smooth", block: "center" });
+      showResults();
     });
 
-    document.getElementById("retry").addEventListener("click", function() {
-      form.reset();
+    function showResults() {
+      const score = questions.reduce((total, q, index) => {
+        return total + (answers[index] === q.answer ? 1 : 0);
+      }, 0);
 
-      questions.forEach((q, i) => {
-        const feedback = document.getElementById(`feedback-${i}`);
-        feedback.className = "feedback";
-        feedback.textContent = "";
+      const percentage = Math.round(score / questions.length * 100);
+
+      document.getElementById("score-number").textContent =
+        `${score}/${questions.length}`;
+
+      document.getElementById("score-percent").textContent =
+        `${percentage} %`;
+
+      document.getElementById("result-message").textContent =
+        percentage === 100 ? "Excellent ! Toutes les réponses sont correctes."
+        : percentage >= 60 ? "Bon travail ! Continue à pratiquer."
+        : "Continue à t'entraîner : chaque correction est une occasion d'apprendre.";
+
+      document.getElementById("result-detail").textContent =
+        `Tu as obtenu ${score} bonne(s) réponse(s) sur ${questions.length}.`;
+
+      reviewContainer.innerHTML = questions.map((q, index) => {
+        const correct = answers[index] === q.answer;
+        const selectedText = answers[index] === null
+          ? "Aucune réponse"
+          : q.options[answers[index]];
+
+        return `
+          <article class="review-item">
+            <h3>${index + 1}. ${q.text}</h3>
+            <p class="${correct ? "correct-text" : "wrong-text"}">
+              ${correct ? "✓ Bonne réponse" : "✗ Réponse incorrecte"}
+            </p>
+            <p><strong>Ta réponse :</strong> ${selectedText}</p>
+            <p><strong>Bonne réponse :</strong> ${q.options[q.answer]}</p>
+            <div class="explanation">
+              <strong>Explication :</strong> ${q.explanation}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      quizPanel.hidden = true;
+      resultsPanel.hidden = false;
+      resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("retry-button").addEventListener("click", () => {
+      currentQuestion = 0;
+      answers = Array(questions.length).fill(null);
+
+      resultsPanel.hidden = true;
+      quizPanel.hidden = false;
+
+      renderQuestion();
+      document.getElementById("quiz").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
       });
-
-      result.style.display = "none";
-      document.getElementById("quiz").scrollIntoView({ behavior: "smooth" });
     });
 
-    renderQuestions();
+    renderQuestion();
   </script>
 </body>
 </html>
