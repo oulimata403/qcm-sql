@@ -1,0 +1,378 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Entraîne-toi en SQL grâce à des QCM gratuits avec corrections et explications.">
+  <title>SQL Academy | QCM SQL gratuits</title>
+
+  <style>
+    :root {
+      --navy: #132238;
+      --blue: #2563eb;
+      --light: #f4f7fb;
+      --text: #263449;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --green: #15803d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--navy);
+      color: white;
+      padding: 18px 7%;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .logo { font-size: 22px; font-weight: bold; }
+    .logo span { color: #60a5fa; }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 18px;
+      font-size: 14px;
+    }
+
+    .hero {
+      background: var(--navy);
+      color: white;
+      padding: 65px 7% 75px;
+    }
+
+    .hero-content { max-width: 760px; }
+
+    .tag {
+      display: inline-block;
+      background: #263b58;
+      color: #bfdbfe;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 13px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.15;
+      margin: 20px 0;
+    }
+
+    .hero p { color: #d3ddeb; max-width: 600px; }
+
+    .button {
+      display: inline-block;
+      background: var(--blue);
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button:hover { opacity: 0.9; }
+    .button:focus-visible, a:focus-visible, input:focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 3px;
+    }
+
+    main {
+      max-width: 1050px;
+      margin: auto;
+      padding: 35px 20px 60px;
+    }
+
+    section { margin-bottom: 45px; }
+    h2 { font-size: 27px; margin-bottom: 8px; }
+    .intro { color: var(--muted); margin-top: 0; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    .card .icon { font-size: 28px; }
+    .card h3 { margin: 10px 0 6px; }
+    .card p { color: var(--muted); font-size: 14px; }
+
+    .quiz {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 25px;
+    }
+
+    .quiz-meta { color: var(--muted); font-size: 14px; }
+
+    .question {
+      border-top: 1px solid var(--border);
+      padding: 20px 0;
+    }
+
+    .question h3 { font-size: 17px; margin-top: 0; }
+
+    .option {
+      display: block;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 9px 0;
+      cursor: pointer;
+    }
+
+    .option:hover { background: #f1f5f9; }
+    .option input { margin-right: 9px; }
+
+    .feedback {
+      display: none;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .feedback.correct {
+      display: block;
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .feedback.incorrect {
+      display: block;
+      background: #fff7ed;
+      color: #9a3412;
+    }
+
+    #result {
+      display: none;
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 18px;
+      margin: 20px 0;
+    }
+
+    footer {
+      background: var(--navy);
+      color: #cbd5e1;
+      text-align: center;
+      padding: 25px 15px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 16px 5%; }
+      .hero { padding: 45px 5%; }
+      main { padding: 28px 15px 45px; }
+      nav a { margin-left: 0; margin-right: 12px; }
+      .quiz { padding: 17px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <div class="logo">SQL <span>ACADEMY</span></div>
+      <div>
+        <a href="#themes">Thèmes</a>
+        <a href="#quiz">Tester mes connaissances</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <span class="tag">Apprentissage gratuit</span>
+      <h1>Progresse en SQL, un QCM à la fois.</h1>
+      <p>
+        Entraîne-toi sur les bases de données, teste tes connaissances
+        et comprends tes erreurs grâce à des corrections expliquées.
+      </p>
+      <a class="button" href="#quiz">Commencer le quiz</a>
+    </div>
+  </section>
+
+  <main>
+    <section id="themes">
+      <h2>Explore les thèmes SQL</h2>
+      <p class="intro">
+        Apprends progressivement, des fondamentaux aux notions avancées.
+      </p>
+
+      <div class="cards">
+        <article class="card">
+          <div class="icon">📘</div>
+          <h3>Fondamentaux SQL</h3>
+          <p>SELECT, WHERE, DISTINCT et ORDER BY.</p>
+        </article>
+
+        <article class="card">
+          <div class="icon">🔗</div>
+          <h3>Jointures</h3>
+          <p>INNER JOIN, LEFT JOIN et relations entre tables.</p>
+        </article>
+
+        <article class="card">
+          <div class="icon">📊</div>
+          <h3>SQL avancé</h3>
+          <p>GROUP BY, sous-requêtes, CTE et fonctions de fenêtre.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>Quiz SQL — Niveau débutant</h2>
+      <p class="intro">
+        Réponds aux cinq questions, puis consulte ton score et les explications.
+      </p>
+
+      <div class="quiz">
+        <p class="quiz-meta">5 questions · 1 point par bonne réponse</p>
+
+        <form id="quiz-form">
+          <div id="questions"></div>
+          <button class="button" type="submit">Corriger mes réponses</button>
+          <button class="button" type="button" id="retry"
+            style="background:#475569; margin-left:8px;">
+            Recommencer
+          </button>
+        </form>
+
+        <div id="result" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>SQL Academy</strong> — Un projet personnel pour apprendre SQL.</p>
+    <p>Des connaissances pratiques pour progresser en bases de données.</p>
+  </footer>
+
+  <script>
+    const questions = [
+      {
+        text: "Quelle instruction permet de récupérer des données dans une table ?",
+        options: ["INSERT", "SELECT", "UPDATE", "DELETE"],
+        answer: 1,
+        explanation: "SELECT permet de lire et de récupérer des données."
+      },
+      {
+        text: "Quelle clause filtre les lignes selon une condition ?",
+        options: ["ORDER BY", "GROUP BY", "WHERE", "HAVING"],
+        answer: 2,
+        explanation: "WHERE filtre les lignes avant le regroupement et l'agrégation."
+      },
+      {
+        text: "Quelle fonction compte toutes les lignes d'un résultat ?",
+        options: ["SUM(*)", "COUNT(*)", "AVG(*)", "TOTAL(*)"],
+        answer: 1,
+        explanation: "COUNT(*) compte les lignes du résultat, y compris celles contenant des valeurs NULL."
+      },
+      {
+        text: "Quelle jointure conserve toutes les lignes de la table de gauche ?",
+        options: ["INNER JOIN", "RIGHT JOIN", "LEFT JOIN", "CROSS JOIN"],
+        answer: 2,
+        explanation: "LEFT JOIN conserve toutes les lignes de gauche. Sans correspondance à droite, les colonnes de droite valent NULL."
+      },
+      {
+        text: "Quelle clause permet de trier les résultats ?",
+        options: ["SORT BY", "ORDER BY", "GROUP BY", "ARRANGE BY"],
+        answer: 1,
+        explanation: "ORDER BY trie les résultats. ASC signifie croissant et DESC décroissant."
+      }
+    ];
+
+    const questionsContainer = document.getElementById("questions");
+    const form = document.getElementById("quiz-form");
+    const result = document.getElementById("result");
+
+    function renderQuestions() {
+      questionsContainer.innerHTML = questions.map((q, i) => `
+        <div class="question" id="question-${i}">
+          <h3>${i + 1}. ${q.text}</h3>
+          ${q.options.map((option, j) => `
+            <label class="option">
+              <input type="radio" name="q${i}" value="${j}" required>
+              ${option}
+            </label>
+          `).join("")}
+          <div class="feedback" id="feedback-${i}"></div>
+        </div>
+      `).join("");
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      let score = 0;
+
+      questions.forEach((q, i) => {
+        const selected = form.querySelector(`input[name="q${i}"]:checked`);
+        const feedback = document.getElementById(`feedback-${i}`);
+        const isCorrect = Number(selected.value) === q.answer;
+
+        if (isCorrect) score++;
+
+        feedback.className = "feedback " +
+          (isCorrect ? "correct" : "incorrect");
+
+        feedback.textContent =
+          (isCorrect ? "Bonne réponse ! " : "Réponse incorrecte. ") +
+          "Réponse attendue : " + q.options[q.answer] +
+          ". " + q.explanation;
+      });
+
+      result.style.display = "block";
+      result.innerHTML =
+        `<strong>Ton score : ${score} / ${questions.length}</strong>
+         <p>${Math.round(score / questions.length * 100)} % de réussite.</p>`;
+
+      result.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    document.getElementById("retry").addEventListener("click", function() {
+      form.reset();
+
+      questions.forEach((q, i) => {
+        const feedback = document.getElementById(`feedback-${i}`);
+        feedback.className = "feedback";
+        feedback.textContent = "";
+      });
+
+      result.style.display = "none";
+      document.getElementById("quiz").scrollIntoView({ behavior: "smooth" });
+    });
+
+    renderQuestions();
+  </script>
+</body>
+</html>
