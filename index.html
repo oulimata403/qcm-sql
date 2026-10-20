@@ -1,144 +1,175 @@
+from pathlib import Path
 
-<!DOCTYPE html>
+html = r'''<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Entraîne-toi gratuitement en SQL avec des QCM, une progression et des corrections détaillées.">
+  <meta name="description" content="Entraîne-toi gratuitement en SQL avec des QCM interactifs, une progression et des corrections détaillées.">
+  <meta name="theme-color" content="#132238">
   <title>SQL Academy | QCM SQL gratuits</title>
-
   <style>
     :root {
       --navy: #132238;
+      --navy-light: #203753;
       --blue: #2563eb;
+      --blue-dark: #1d4ed8;
       --light: #f4f7fb;
       --text: #263449;
       --muted: #64748b;
       --border: #e2e8f0;
       --green: #15803d;
+      --red: #b91c1c;
+      --amber: #b45309;
+      --white: #ffffff;
+      --shadow: 0 10px 30px rgba(19, 34, 56, .07);
     }
 
     * { box-sizing: border-box; }
-
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: var(--light);
       color: var(--text);
       line-height: 1.6;
     }
-
+    button, input { font: inherit; }
     header {
       background: var(--navy);
-      color: white;
+      color: var(--white);
       padding: 18px 7%;
     }
-
     nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 15px;
       flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-
-    .logo { font-size: 22px; font-weight: bold; }
+    .logo { font-size: 22px; font-weight: 800; letter-spacing: .3px; }
     .logo span { color: #60a5fa; }
-
     nav a {
-      color: white;
+      color: var(--white);
       text-decoration: none;
       margin-left: 18px;
       font-size: 14px;
     }
-
+    nav a:hover { color: #bfdbfe; }
     .hero {
-      background: var(--navy);
-      color: white;
-      padding: 60px 7% 70px;
+      background: linear-gradient(135deg, var(--navy), #1e3a5f);
+      color: var(--white);
+      padding: 64px 7% 72px;
     }
-
-    .hero-content { max-width: 760px; }
-
+    .hero-content { max-width: 1200px; margin: 0 auto; }
     .tag {
       display: inline-block;
       background: #263b58;
       color: #bfdbfe;
+      border: 1px solid #3d5575;
       border-radius: 20px;
       padding: 5px 12px;
       font-size: 13px;
     }
-
     h1 {
-      font-size: clamp(32px, 5vw, 46px);
-      line-height: 1.2;
-      margin: 20px 0;
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.16;
+      margin: 20px 0 14px;
+      max-width: 760px;
     }
-
-    .hero p { color: #d3ddeb; max-width: 600px; }
-
+    .hero p { color: #d3ddeb; max-width: 650px; }
     .button {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       background: var(--blue);
       color: white;
       padding: 11px 18px;
-      border: none;
+      border: 1px solid transparent;
       border-radius: 8px;
       font-size: 15px;
-      font-weight: bold;
+      font-weight: 700;
       text-decoration: none;
       cursor: pointer;
+      transition: background .15s, transform .15s;
     }
-
-    .button:hover { opacity: 0.9; }
-
-    .button:focus-visible,
-    a:focus-visible,
-    input:focus-visible {
+    .button:hover { background: var(--blue-dark); }
+    .button:active { transform: translateY(1px); }
+    .button:focus-visible, a:focus-visible, input:focus-visible, .theme-card:focus-visible {
       outline: 3px solid #93c5fd;
       outline-offset: 3px;
     }
-
-    .button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
+    .button:disabled { opacity: .45; cursor: not-allowed; }
+    .secondary { background: #475569; }
+    .secondary:hover { background: #334155; }
+    .finish { background: var(--green); }
+    .finish:hover { background: #166534; }
+    .outline-button {
+      background: white;
+      color: var(--text);
+      border-color: var(--border);
     }
-
-    main {
-      max-width: 1000px;
-      margin: auto;
-      padding: 35px 20px 60px;
-    }
-
-    section { margin-bottom: 40px; }
-    h2 { font-size: 27px; margin-bottom: 8px; }
+    .outline-button:hover { background: #f8fafc; }
+    main { max-width: 1100px; margin: auto; padding: 38px 20px 64px; }
+    section { margin-bottom: 44px; scroll-margin-top: 20px; }
+    h2 { font-size: clamp(23px, 3vw, 28px); margin: 0 0 8px; line-height: 1.3; }
     .intro { color: var(--muted); margin-top: 0; }
-
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
       margin-top: 22px;
     }
-
-    .card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    .card .icon { font-size: 28px; }
-    .card h3 { margin: 8px 0; }
-    .card p { color: var(--muted); font-size: 14px; }
-
-    .quiz, .results {
+    .theme-card {
+      width: 100%;
+      text-align: left;
+      color: var(--text);
       background: white;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 25px;
+      padding: 22px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(19, 34, 56, .02);
+      transition: transform .18s, box-shadow .18s, border-color .18s;
     }
-
+    .theme-card:hover {
+      transform: translateY(-3px);
+      border-color: #93c5fd;
+      box-shadow: var(--shadow);
+    }
+    .theme-card .icon { font-size: 30px; }
+    .theme-card h3 { margin: 10px 0 7px; font-size: 18px; }
+    .theme-card p { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+    .card-action { color: var(--blue); font-size: 14px; font-weight: 700; }
+    .theme-label {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 9px;
+      border-radius: 20px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .quiz, .results, .empty-state {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: clamp(18px, 4vw, 28px);
+      box-shadow: var(--shadow);
+    }
+    .quiz-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .quiz-heading h2 { margin: 0; }
     .quiz-meta {
       display: flex;
       justify-content: space-between;
@@ -147,7 +178,6 @@
       color: var(--muted);
       font-size: 14px;
     }
-
     .progress-track {
       height: 10px;
       width: 100%;
@@ -156,48 +186,32 @@
       overflow: hidden;
       margin: 12px 0 25px;
     }
-
     .progress-fill {
       height: 100%;
       width: 0;
       background: var(--blue);
       border-radius: 20px;
-      transition: width 0.25s ease;
+      transition: width .25s ease;
     }
-
     .question h3 {
       font-size: 21px;
       line-height: 1.5;
       margin: 15px 0 20px;
     }
-
     .option {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
+      gap: 11px;
       padding: 13px;
       border: 1px solid var(--border);
       border-radius: 9px;
       margin: 10px 0;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background .15s, border-color .15s;
     }
-
-    .option:hover {
-      background: #f1f5f9;
-      border-color: #94a3b8;
-    }
-
-    .option:has(input:checked) {
-      background: #eff6ff;
-      border-color: var(--blue);
-    }
-
-    .option input {
-      margin-top: 5px;
-      accent-color: var(--blue);
-    }
-
+    .option:hover { background: #f1f5f9; border-color: #94a3b8; }
+    .option:has(input:checked) { background: #eff6ff; border-color: var(--blue); }
+    .option input { margin-top: 6px; accent-color: var(--blue); flex-shrink: 0; }
     .navigation {
       display: flex;
       justify-content: space-between;
@@ -205,22 +219,17 @@
       flex-wrap: wrap;
       margin-top: 25px;
     }
-
-    .secondary { background: #475569; }
-    .finish { background: var(--green); }
-
+    .navigation .right-actions { display: flex; gap: 10px; margin-left: auto; }
     .message {
-      color: #b45309;
+      color: var(--amber);
       font-size: 14px;
       min-height: 22px;
       margin: 12px 0 0;
     }
-
     .results { margin-top: 20px; }
-
     .score-circle {
-      width: 115px;
-      height: 115px;
+      width: 118px;
+      height: 118px;
       border-radius: 50%;
       background: #eff6ff;
       color: var(--blue);
@@ -229,30 +238,23 @@
       justify-content: center;
       flex-direction: column;
       margin: 20px auto;
+      border: 7px solid #dbeafe;
     }
-
-    .score-circle strong { font-size: 29px; }
+    .score-circle strong { font-size: 29px; line-height: 1.2; }
     .score-circle span { font-size: 12px; }
-
     .result-summary { text-align: center; }
-
-    .review-item {
-      padding: 16px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .review-item h3 { font-size: 16px; }
-
-    .correct-text { color: var(--green); }
-    .wrong-text { color: #b45309; }
-
+    .review-item { padding: 17px 0; border-top: 1px solid var(--border); }
+    .review-item h3 { font-size: 16px; margin-bottom: 8px; }
+    .correct-text { color: var(--green); font-weight: 700; }
+    .wrong-text { color: var(--red); font-weight: 700; }
     .explanation {
       background: #f8fafc;
+      border-left: 3px solid #93c5fd;
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 0 8px 8px 0;
       font-size: 14px;
     }
-
+    .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
     footer {
       background: var(--navy);
       color: #cbd5e1;
@@ -260,24 +262,24 @@
       padding: 25px 15px;
       font-size: 13px;
     }
-
+    footer p { margin: 5px 0; }
     [hidden] { display: none !important; }
-
-    @media (max-width: 600px) {
-      header { padding: 16px 5%; }
-      .hero { padding: 45px 5%; }
-      main { padding: 25px 14px 45px; }
-      nav a { margin-left: 0; margin-right: 12px; }
-      .quiz, .results { padding: 17px; }
-      .question h3 { font-size: 18px; }
+    @media (max-width: 760px) {
+      .cards { grid-template-columns: 1fr; }
+      .theme-card { padding: 18px; }
+      .hero { padding: 48px 6%; }
+      header { padding: 16px 6%; }
+      main { padding: 28px 14px 45px; }
+      nav a { margin-left: 0; margin-right: 14px; }
       .navigation .button { flex: 1; }
+      .navigation .right-actions { flex: 1; margin-left: 0; }
+      .navigation .right-actions .button { flex: 1; }
     }
   </style>
 </head>
-
 <body>
   <header>
-    <nav>
+    <nav aria-label="Navigation principale">
       <div class="logo">SQL <span>ACADEMY</span></div>
       <div>
         <a href="#themes">Thèmes</a>
@@ -290,81 +292,72 @@
     <div class="hero-content">
       <span class="tag">Apprentissage gratuit</span>
       <h1>Progresse en SQL, un QCM à la fois.</h1>
-      <p>
-        Teste tes connaissances, avance question par question
-        et comprends tes erreurs grâce aux explications.
-      </p>
-      <a class="button" href="#quiz">Commencer le quiz</a>
+      <p>Choisis un thème, teste tes connaissances question par question et comprends tes erreurs grâce aux explications détaillées.</p>
+      <a class="button" href="#themes">Choisir un thème <span aria-hidden="true">→</span></a>
     </div>
   </section>
 
   <main>
     <section id="themes">
       <h2>Explore les thèmes SQL</h2>
-      <p class="intro">
-        Des fondamentaux aux notions avancées, progresse à ton rythme.
-      </p>
-
+      <p class="intro">Choisis un thème pour démarrer un quiz dédié. Tu pourras avancer, revenir en arrière et consulter ta correction à la fin.</p>
       <div class="cards">
-        <article class="card">
+        <button class="theme-card" type="button" data-theme="fondamentaux">
           <div class="icon" aria-hidden="true">📘</div>
           <h3>Fondamentaux SQL</h3>
-          <p>SELECT, WHERE, DISTINCT et ORDER BY.</p>
-        </article>
-
-        <article class="card">
+          <p>SELECT, WHERE, DISTINCT, ORDER BY et filtres.</p>
+          <span class="card-action">Commencer ce quiz →</span><br>
+          <span class="theme-label">Niveau débutant · 5 questions</span>
+        </button>
+        <button class="theme-card" type="button" data-theme="jointures">
           <div class="icon" aria-hidden="true">🔗</div>
           <h3>Jointures</h3>
-          <p>INNER JOIN, LEFT JOIN et relations entre tables.</p>
-        </article>
-
-        <article class="card">
+          <p>INNER JOIN, LEFT JOIN, relations et lignes sans correspondance.</p>
+          <span class="card-action">Commencer ce quiz →</span><br>
+          <span class="theme-label">Débutant à intermédiaire · 5 questions</span>
+        </button>
+        <button class="theme-card" type="button" data-theme="avance">
           <div class="icon" aria-hidden="true">📊</div>
           <h3>SQL avancé</h3>
           <p>Agrégations, sous-requêtes, CTE et fonctions de fenêtre.</p>
-        </article>
+          <span class="card-action">Commencer ce quiz →</span><br>
+          <span class="theme-label">Niveau intermédiaire · 5 questions</span>
+        </button>
       </div>
     </section>
 
     <section id="quiz">
-      <h2>Quiz SQL — Niveau débutant</h2>
-      <p class="intro">
-        Réponds aux cinq questions. Tu verras ton score et les corrections à la fin.
-      </p>
+      <div class="quiz-heading">
+        <div>
+          <h2 id="quiz-title">Choisis un thème pour commencer</h2>
+          <p class="intro" id="quiz-description">Le quiz s'affichera ici. Une seule question sera visible à la fois.</p>
+        </div>
+        <button class="button outline-button" type="button" id="change-theme-button" hidden>Changer de thème</button>
+      </div>
 
-      <div class="quiz" id="quiz-panel">
+      <div class="empty-state" id="empty-state">
+        <strong>Prêt à t'entraîner ?</strong>
+        <p class="intro">Sélectionne l'une des trois cartes ci-dessus pour lancer un quiz de cinq questions.</p>
+        <a class="button" href="#themes">Voir les thèmes</a>
+      </div>
+
+      <div class="quiz" id="quiz-panel" hidden>
         <div class="quiz-meta">
           <span id="question-counter">Question 1 sur 5</span>
           <span id="answered-counter">0 réponse sur 5</span>
         </div>
-
-        <div
-          class="progress-track"
-          role="progressbar"
-          aria-label="Progression du quiz"
-          aria-valuemin="0"
-          aria-valuemax="5"
-          aria-valuenow="0"
-          id="progress-track"
-        >
+        <div class="progress-track" id="progress-track" role="progressbar" aria-label="Progression du quiz" aria-valuemin="0" aria-valuemax="5" aria-valuenow="1">
           <div class="progress-fill" id="progress-fill"></div>
         </div>
-
-        <form id="quiz-form">
+        <form id="quiz-form" novalidate>
           <div id="question-container" class="question"></div>
-
           <p id="navigation-message" class="message" role="status" aria-live="polite"></p>
-
           <div class="navigation">
-            <button class="button secondary" type="button" id="previous-button">
-              ← Précédent
-            </button>
-            <button class="button" type="button" id="next-button">
-              Suivant →
-            </button>
-            <button class="button finish" type="submit" id="finish-button" hidden>
-              Voir mon résultat
-            </button>
+            <button class="button secondary" type="button" id="previous-button">← Précédent</button>
+            <div class="right-actions">
+              <button class="button" type="button" id="next-button">Suivant →</button>
+              <button class="button finish" type="submit" id="finish-button" hidden>Voir mon résultat</button>
+            </div>
           </div>
         </form>
       </div>
@@ -379,59 +372,141 @@
           </div>
           <p id="result-detail"></p>
         </div>
-
         <h2>Correction détaillée</h2>
-        <p class="intro">
-          Revois chaque réponse pour mieux comprendre les notions SQL.
-        </p>
+        <p class="intro">Revois chaque réponse pour comprendre les notions à retravailler.</p>
         <div id="review-container"></div>
-
-        <button class="button" type="button" id="retry-button">
-          Recommencer le quiz
-        </button>
+        <div class="result-actions">
+          <button class="button" type="button" id="retry-button">Refaire ce quiz</button>
+          <button class="button outline-button" type="button" id="choose-another-button">Choisir un autre thème</button>
+        </div>
       </div>
     </section>
   </main>
 
   <footer>
-    <p><strong>SQL Academy</strong> — Un projet personnel pour apprendre SQL.</p>
-    <p>Apprendre, pratiquer et progresser en bases de données.</p>
+    <p><strong>SQL Academy</strong> — Apprendre, pratiquer et progresser en bases de données.</p>
+    <p>Des quiz gratuits pour développer tes compétences SQL.</p>
   </footer>
 
   <script>
-    const questions = [
-      {
-        text: "Quelle instruction permet de récupérer des données dans une table ?",
-        options: ["INSERT", "SELECT", "UPDATE", "DELETE"],
-        answer: 1,
-        explanation: "SELECT permet de lire et de récupérer des données dans une table."
-      },
-      {
-        text: "Quelle clause filtre les lignes selon une condition ?",
-        options: ["ORDER BY", "GROUP BY", "WHERE", "HAVING"],
-        answer: 2,
-        explanation: "WHERE filtre les lignes avant le regroupement. HAVING sert à filtrer les groupes après l'agrégation."
-      },
-      {
-        text: "Quelle fonction compte toutes les lignes d'un résultat ?",
-        options: ["SUM(*)", "COUNT(*)", "AVG(*)", "TOTAL(*)"],
-        answer: 1,
-        explanation: "COUNT(*) compte toutes les lignes du résultat, même lorsqu'une colonne contient NULL."
-      },
-      {
-        text: "Quelle jointure conserve toutes les lignes de la table de gauche ?",
-        options: ["INNER JOIN", "RIGHT JOIN", "LEFT JOIN", "CROSS JOIN"],
-        answer: 2,
-        explanation: "LEFT JOIN conserve toutes les lignes de gauche. Sans correspondance à droite, les colonnes de droite valent NULL."
-      },
-      {
-        text: "Quelle clause permet de trier les résultats ?",
-        options: ["SORT BY", "ORDER BY", "GROUP BY", "ARRANGE BY"],
-        answer: 1,
-        explanation: "ORDER BY trie les résultats. ASC indique l'ordre croissant et DESC l'ordre décroissant."
-      }
-    ];
+    "use strict";
 
+    const quizData = {
+      fondamentaux: {
+        title: "Fondamentaux SQL",
+        description: "Les commandes essentielles pour lire, filtrer et trier des données.",
+        questions: [
+          {
+            text: "Quelle instruction permet de récupérer des données dans une table ?",
+            options: ["INSERT", "SELECT", "UPDATE", "DELETE"],
+            answer: 1,
+            explanation: "SELECT sert à lire et récupérer des données. INSERT ajoute des lignes, UPDATE modifie des données et DELETE supprime des lignes."
+          },
+          {
+            text: "Quelle clause filtre les lignes selon une condition ?",
+            options: ["ORDER BY", "GROUP BY", "WHERE", "HAVING"],
+            answer: 2,
+            explanation: "WHERE filtre les lignes avant le regroupement. HAVING filtre les groupes après l'agrégation."
+          },
+          {
+            text: "Quel mot-clé permet d'éviter les doublons dans le résultat d'une sélection ?",
+            options: ["UNIQUE", "DISTINCT", "NO DUPLICATES", "DIFFERENT"],
+            answer: 1,
+            explanation: "DISTINCT élimine les doublons parmi les combinaisons de colonnes sélectionnées."
+          },
+          {
+            text: "Quelle clause permet de trier les résultats par ordre décroissant ?",
+            options: ["ORDER BY colonne DESC", "SORT colonne DOWN", "WHERE colonne DESC", "GROUP BY colonne DESC"],
+            answer: 0,
+            explanation: "ORDER BY définit le tri. DESC trie du plus grand au plus petit, ou du plus récent au plus ancien selon la colonne."
+          },
+          {
+            text: "Quelle condition permet de sélectionner les lignes dont le prix est supérieur à 1000 ?",
+            options: ["WHERE prix < 1000", "WHERE prix = 1000", "WHERE prix > 1000", "ORDER BY prix > 1000"],
+            answer: 2,
+            explanation: "L'opérateur > signifie strictement supérieur. La condition s'écrit WHERE prix > 1000."
+          }
+        ]
+      },
+      jointures: {
+        title: "Jointures SQL",
+        description: "Comprendre comment combiner des données provenant de plusieurs tables.",
+        questions: [
+          {
+            text: "Quelle jointure conserve uniquement les lignes qui ont une correspondance dans les deux tables ?",
+            options: ["LEFT JOIN", "INNER JOIN", "FULL OUTER JOIN", "CROSS JOIN"],
+            answer: 1,
+            explanation: "INNER JOIN retourne les lignes pour lesquelles la condition de jointure trouve une correspondance dans les deux tables."
+          },
+          {
+            text: "Quelle jointure conserve toutes les lignes de la table placée à gauche, même sans correspondance à droite ?",
+            options: ["INNER JOIN", "CROSS JOIN", "LEFT JOIN", "RIGHT JOIN"],
+            answer: 2,
+            explanation: "LEFT JOIN conserve toutes les lignes de gauche. En l'absence de correspondance, les colonnes de droite valent NULL."
+          },
+          {
+            text: "Dans une jointure entre Clients et Commandes, quelle condition relie généralement les commandes à leurs clients ?",
+            options: ["Clients.nom = Commandes.date_commande", "Clients.id_client = Commandes.id_client", "Clients.ville = Commandes.montant", "Aucune condition n'est nécessaire"],
+            answer: 1,
+            explanation: "La clé client présente dans les deux tables permet de rattacher chaque commande au bon client, si le modèle de données est conçu ainsi."
+          },
+          {
+            text: "Que se passe-t-il lorsqu'une ligne de gauche n'a aucune correspondance dans la table droite d'un LEFT JOIN ?",
+            options: ["La ligne de gauche disparaît", "La requête échoue toujours", "Les colonnes de droite sont NULL", "La ligne est automatiquement supprimée"],
+            answer: 2,
+            explanation: "La ligne de gauche est conservée et les colonnes provenant de la table droite prennent la valeur NULL."
+          },
+          {
+            text: "Quel est le risque si la colonne utilisée pour la jointure contient plusieurs correspondances dans la table droite ?",
+            options: ["Les lignes de résultat peuvent être multipliées", "SQL supprime les doublons automatiquement", "La jointure devient toujours un INNER JOIN", "Toutes les valeurs deviennent NULL"],
+            answer: 0,
+            explanation: "Chaque correspondance peut produire une ligne de résultat. Une relation un-à-plusieurs peut donc multiplier les lignes et affecter les agrégations."
+          }
+        ]
+      },
+      avance: {
+        title: "SQL avancé",
+        description: "Découvrir les agrégations, les CTE, les sous-requêtes et les fonctions de fenêtre.",
+        questions: [
+          {
+            text: "Quelle fonction compte toutes les lignes d'un résultat, y compris celles où certaines colonnes valent NULL ?",
+            options: ["SUM(*)", "COUNT(*)", "AVG(*)", "TOTAL(*)"],
+            answer: 1,
+            explanation: "COUNT(*) compte toutes les lignes du résultat. COUNT(nom_colonne), en revanche, ne compte pas les valeurs NULL de cette colonne."
+          },
+          {
+            text: "À quoi sert principalement GROUP BY ?",
+            options: ["À trier les lignes", "À supprimer une table", "À regrouper les lignes pour calculer des agrégats", "À renommer les colonnes"],
+            answer: 2,
+            explanation: "GROUP BY regroupe les lignes partageant les mêmes valeurs dans les colonnes indiquées, afin de calculer des agrégats comme COUNT, SUM ou AVG."
+          },
+          {
+            text: "Quel mot-clé introduit une expression de table commune (CTE) dans SQL Server ?",
+            options: ["WITH", "DEFINE", "TEMP", "DECLARE TABLE"],
+            answer: 0,
+            explanation: "Une CTE commence avec WITH nom_cte AS (...). Elle permet de structurer une requête et peut être référencée par l'instruction qui suit."
+          },
+          {
+            text: "Quelle clause filtre les groupes après l'application de GROUP BY ?",
+            options: ["WHERE", "ORDER BY", "HAVING", "FROM"],
+            answer: 2,
+            explanation: "HAVING filtre les groupes, par exemple HAVING COUNT(*) > 5. WHERE filtre les lignes avant leur regroupement."
+          },
+          {
+            text: "Quel est l'intérêt de ROW_NUMBER() OVER (PARTITION BY departement ORDER BY salaire DESC) ?",
+            options: ["Calculer la moyenne des salaires", "Attribuer un numéro aux lignes dans chaque département selon le salaire décroissant", "Supprimer les salariés en double", "Trier définitivement la table"],
+            answer: 1,
+            explanation: "ROW_NUMBER attribue un numéro séquentiel aux lignes. PARTITION BY recommence la numérotation dans chaque département et ORDER BY définit l'ordre de classement."
+          }
+        ]
+      }
+    };
+
+    const emptyState = document.getElementById("empty-state");
+    const quizPanel = document.getElementById("quiz-panel");
+    const resultsPanel = document.getElementById("results-panel");
+    const quizTitle = document.getElementById("quiz-title");
+    const quizDescription = document.getElementById("quiz-description");
     const form = document.getElementById("quiz-form");
     const questionContainer = document.getElementById("question-container");
     const questionCounter = document.getElementById("question-counter");
@@ -442,58 +517,93 @@
     const nextButton = document.getElementById("next-button");
     const finishButton = document.getElementById("finish-button");
     const navigationMessage = document.getElementById("navigation-message");
-    const quizPanel = document.getElementById("quiz-panel");
-    const resultsPanel = document.getElementById("results-panel");
     const reviewContainer = document.getElementById("review-container");
+    const changeThemeButton = document.getElementById("change-theme-button");
 
+    let currentThemeKey = null;
     let currentQuestion = 0;
-    let answers = Array(questions.length).fill(null);
+    let answers = [];
+
+    function startQuiz(themeKey) {
+      const theme = quizData[themeKey];
+      if (!theme) return;
+
+      currentThemeKey = themeKey;
+      currentQuestion = 0;
+      answers = Array(theme.questions.length).fill(null);
+
+      quizTitle.textContent = `Quiz — ${theme.title}`;
+      quizDescription.textContent = theme.description;
+      emptyState.hidden = true;
+      resultsPanel.hidden = true;
+      quizPanel.hidden = false;
+      changeThemeButton.hidden = false;
+      renderQuestion();
+
+      document.getElementById("quiz").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
 
     function renderQuestion() {
-      const q = questions[currentQuestion];
+      const theme = quizData[currentThemeKey];
+      if (!theme) return;
+      const q = theme.questions[currentQuestion];
+      const total = theme.questions.length;
 
-      questionCounter.textContent =
-        `Question ${currentQuestion + 1} sur ${questions.length}`;
-
-      answeredCounter.textContent =
-        `${answers.filter(a => a !== null).length} réponse(s) sur ${questions.length}`;
-
-      progressFill.style.width =
-        `${(currentQuestion + 1) / questions.length * 100}%`;
-
+      questionCounter.textContent = `Question ${currentQuestion + 1} sur ${total}`;
+      answeredCounter.textContent = `${answers.filter(a => a !== null).length} réponse(s) sur ${total}`;
+      progressFill.style.width = `${((currentQuestion + 1) / total) * 100}%`;
+      progressTrack.setAttribute("aria-valuemax", total);
       progressTrack.setAttribute("aria-valuenow", currentQuestion + 1);
 
-      questionContainer.innerHTML = `
-        <h3>${currentQuestion + 1}. ${q.text}</h3>
-        ${q.options.map((option, index) => `
-          <label class="option">
-            <input
-              type="radio"
-              name="answer"
-              value="${index}"
-              ${answers[currentQuestion] === index ? "checked" : ""}
-            >
-            <span>${option}</span>
-          </label>
-        `).join("")}
-      `;
+      questionContainer.replaceChildren();
 
-      questionContainer.querySelectorAll('input[name="answer"]').forEach(input => {
+      const heading = document.createElement("h3");
+      heading.textContent = `${currentQuestion + 1}. ${q.text}`;
+      questionContainer.appendChild(heading);
+
+      q.options.forEach((option, index) => {
+        const label = document.createElement("label");
+        label.className = "option";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "answer";
+        input.value = String(index);
+        input.checked = answers[currentQuestion] === index;
         input.addEventListener("change", () => {
-          answers[currentQuestion] = Number(input.value);
-          answeredCounter.textContent =
-            `${answers.filter(a => a !== null).length} réponse(s) sur ${questions.length}`;
+          answers[currentQuestion] = index;
+          updateAnsweredCounter();
           navigationMessage.textContent = "";
         });
+
+        const span = document.createElement("span");
+        span.textContent = option;
+        label.append(input, span);
+        questionContainer.appendChild(label);
       });
 
       previousButton.disabled = currentQuestion === 0;
-
-      const isLast = currentQuestion === questions.length - 1;
+      const isLast = currentQuestion === total - 1;
       nextButton.hidden = isLast;
       finishButton.hidden = !isLast;
-
       navigationMessage.textContent = "";
+    }
+
+    function updateAnsweredCounter() {
+      const total = quizData[currentThemeKey].questions.length;
+      answeredCounter.textContent = `${answers.filter(a => a !== null).length} réponse(s) sur ${total}`;
+    }
+
+    function goToNextQuestion() {
+      if (answers[currentQuestion] === null) {
+        navigationMessage.textContent = "Choisis une réponse avant de continuer.";
+        return;
+      }
+      const total = quizData[currentThemeKey].questions.length;
+      if (currentQuestion < total - 1) {
+        currentQuestion++;
+        renderQuestion();
+      }
     }
 
     previousButton.addEventListener("click", () => {
@@ -503,103 +613,103 @@
       }
     });
 
-    nextButton.addEventListener("click", () => {
-      if (answers[currentQuestion] === null) {
-        navigationMessage.textContent =
-          "Choisis une réponse avant de continuer.";
-        return;
-      }
-
-      if (currentQuestion < questions.length - 1) {
-        currentQuestion++;
-        renderQuestion();
-      }
-    });
+    nextButton.addEventListener("click", goToNextQuestion);
 
     form.addEventListener("submit", event => {
       event.preventDefault();
-
-      if (answers[currentQuestion] === null) {
-        navigationMessage.textContent =
-          "Choisis une réponse avant de terminer le quiz.";
-        return;
-      }
-
-      const unanswered = answers.findIndex(answer => answer === null);
-
-      if (unanswered !== -1) {
-        currentQuestion = unanswered;
+      const unansweredIndex = answers.findIndex(answer => answer === null);
+      if (unansweredIndex !== -1) {
+        currentQuestion = unansweredIndex;
         renderQuestion();
-        navigationMessage.textContent =
-          "Il reste une question sans réponse. Réponds-y avant de terminer.";
+        navigationMessage.textContent = "Il reste une question sans réponse. Réponds-y avant de terminer.";
         return;
       }
-
       showResults();
     });
 
     function showResults() {
-      const score = questions.reduce((total, q, index) => {
-        return total + (answers[index] === q.answer ? 1 : 0);
-      }, 0);
+      const theme = quizData[currentThemeKey];
+      const questions = theme.questions;
+      const score = questions.reduce((total, q, index) => total + (answers[index] === q.answer ? 1 : 0), 0);
+      const percentage = Math.round((score / questions.length) * 100);
 
-      const percentage = Math.round(score / questions.length * 100);
-
-      document.getElementById("score-number").textContent =
-        `${score}/${questions.length}`;
-
-      document.getElementById("score-percent").textContent =
-        `${percentage} %`;
-
+      document.getElementById("score-number").textContent = `${score}/${questions.length}`;
+      document.getElementById("score-percent").textContent = `${percentage} %`;
       document.getElementById("result-message").textContent =
         percentage === 100 ? "Excellent ! Toutes les réponses sont correctes."
         : percentage >= 60 ? "Bon travail ! Continue à pratiquer."
         : "Continue à t'entraîner : chaque correction est une occasion d'apprendre.";
-
       document.getElementById("result-detail").textContent =
-        `Tu as obtenu ${score} bonne(s) réponse(s) sur ${questions.length}.`;
+        `Thème : ${theme.title}. Tu as obtenu ${score} bonne(s) réponse(s) sur ${questions.length}.`;
 
-      reviewContainer.innerHTML = questions.map((q, index) => {
+      reviewContainer.replaceChildren();
+      questions.forEach((q, index) => {
         const correct = answers[index] === q.answer;
-        const selectedText = answers[index] === null
-          ? "Aucune réponse"
-          : q.options[answers[index]];
+        const article = document.createElement("article");
+        article.className = "review-item";
 
-        return `
-          <article class="review-item">
-            <h3>${index + 1}. ${q.text}</h3>
-            <p class="${correct ? "correct-text" : "wrong-text"}">
-              ${correct ? "✓ Bonne réponse" : "✗ Réponse incorrecte"}
-            </p>
-            <p><strong>Ta réponse :</strong> ${selectedText}</p>
-            <p><strong>Bonne réponse :</strong> ${q.options[q.answer]}</p>
-            <div class="explanation">
-              <strong>Explication :</strong> ${q.explanation}
-            </div>
-          </article>
-        `;
-      }).join("");
+        const heading = document.createElement("h3");
+        heading.textContent = `${index + 1}. ${q.text}`;
+
+        const status = document.createElement("p");
+        status.className = correct ? "correct-text" : "wrong-text";
+        status.textContent = correct ? "✓ Bonne réponse" : "✗ Réponse incorrecte";
+
+        const selected = document.createElement("p");
+        selected.append(document.createTextNode("Ta réponse : "));
+        const selectedStrong = document.createElement("strong");
+        selectedStrong.textContent = answers[index] === null ? "Aucune réponse" : q.options[answers[index]];
+        selected.appendChild(selectedStrong);
+
+        const correctAnswer = document.createElement("p");
+        correctAnswer.append(document.createTextNode("Bonne réponse : "));
+        const correctStrong = document.createElement("strong");
+        correctStrong.textContent = q.options[q.answer];
+        correctAnswer.appendChild(correctStrong);
+
+        const explanation = document.createElement("div");
+        explanation.className = "explanation";
+        const explanationStrong = document.createElement("strong");
+        explanationStrong.textContent = "Explication : ";
+        explanation.append(explanationStrong, document.createTextNode(q.explanation));
+
+        article.append(heading, status, selected, correctAnswer, explanation);
+        reviewContainer.appendChild(article);
+      });
 
       quizPanel.hidden = true;
       resultsPanel.hidden = false;
+      changeThemeButton.hidden = true;
       resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    document.getElementById("retry-button").addEventListener("click", () => {
-      currentQuestion = 0;
-      answers = Array(questions.length).fill(null);
-
+    function chooseTheme() {
       resultsPanel.hidden = true;
-      quizPanel.hidden = false;
+      quizPanel.hidden = true;
+      emptyState.hidden = false;
+      changeThemeButton.hidden = true;
+      quizTitle.textContent = "Choisis un thème pour commencer";
+      quizDescription.textContent = "Le quiz s'affichera ici. Une seule question sera visible à la fois.";
+      currentThemeKey = null;
+      currentQuestion = 0;
+      answers = [];
+      document.getElementById("themes").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
 
-      renderQuestion();
-      document.getElementById("quiz").scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+    document.querySelectorAll("[data-theme]").forEach(button => {
+      button.addEventListener("click", () => startQuiz(button.dataset.theme));
     });
 
-    renderQuestion();
+    changeThemeButton.addEventListener("click", chooseTheme);
+    document.getElementById("choose-another-button").addEventListener("click", chooseTheme);
+    document.getElementById("retry-button").addEventListener("click", () => {
+      if (currentThemeKey) startQuiz(currentThemeKey);
+    });
   </script>
 </body>
 </html>
+'''
+
+out = Path("/mnt/data/index.html")
+out.write_text(html, encoding="utf-8")
+print(f"Fichier créé : {out} ({len(html):,} caractères)")
