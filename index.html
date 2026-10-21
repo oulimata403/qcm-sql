@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Quiz SQL interactifs : fondamentaux, jointures et SQL avancé.">
+  <meta name="description" content="SQL Master Quiz : progression guidée avec 90 questions SQL.">
   <meta name="theme-color" content="#0f172a">
-  <title>SQL Master Quiz | Apprendre SQL</title>
+  <title>SQL Master Quiz | Progression SQL</title>
 
   <style>
     :root {
@@ -21,6 +21,7 @@
       --danger: #dc2626;
       --danger-bg: #fee2e2;
       --warning: #d97706;
+      --warning-bg: #fef3c7;
       --text: #1e293b;
       --muted: #64748b;
       --border: #e2e8f0;
@@ -108,7 +109,6 @@
       height: 38px;
       border-radius: 12px;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
-      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
     }
 
     .brand span {
@@ -135,6 +135,7 @@
       display: inline-flex;
       justify-content: center;
       align-items: center;
+      gap: 8px;
       min-height: 46px;
       padding: 11px 18px;
       border-radius: 12px;
@@ -177,7 +178,7 @@
     }
 
     .hero {
-      padding: 72px 0 78px;
+      padding: 68px 0 74px;
     }
 
     .hero-grid {
@@ -198,7 +199,7 @@
     }
 
     .hero h1 {
-      max-width: 730px;
+      max-width: 760px;
       margin: 18px 0;
       color: var(--navy);
       font-size: clamp(38px, 5vw, 62px);
@@ -336,10 +337,25 @@
       background: linear-gradient(90deg, var(--primary), var(--secondary));
     }
 
-    .theme-card:hover {
+    .theme-card:hover:not(:disabled) {
       transform: translateY(-7px);
       border-color: #a5b4fc;
       box-shadow: var(--shadow);
+    }
+
+    .theme-card:disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+      background: #f8fafc;
+    }
+
+    .theme-card.completed {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+
+    .theme-card.unlocked {
+      border-color: #a5b4fc;
     }
 
     .theme-icon {
@@ -384,6 +400,16 @@
       white-space: nowrap;
     }
 
+    .pill-success {
+      color: #166534;
+      background: var(--success-bg);
+    }
+
+    .pill-lock {
+      color: #64748b;
+      background: #e2e8f0;
+    }
+
     .quiz-shell {
       padding: clamp(20px, 4vw, 34px);
       border: 1px solid var(--border);
@@ -412,6 +438,7 @@
     }
 
     .level-card {
+      position: relative;
       padding: 19px;
       border: 2px solid var(--border);
       border-radius: 16px;
@@ -421,10 +448,21 @@
       transition: 0.2s ease;
     }
 
-    .level-card:hover {
+    .level-card:hover:not(:disabled) {
       border-color: var(--primary);
       background: var(--primary-light);
       transform: translateY(-2px);
+    }
+
+    .level-card:disabled {
+      cursor: not-allowed;
+      opacity: 0.56;
+      background: #f8fafc;
+    }
+
+    .level-card.completed {
+      border-color: #86efac;
+      background: #f0fdf4;
     }
 
     .level-card strong {
@@ -437,6 +475,14 @@
     .level-card span {
       color: var(--muted);
       font-size: 13px;
+    }
+
+    .level-score {
+      display: inline-block;
+      margin-top: 10px;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 900;
     }
 
     .quiz-header {
@@ -696,6 +742,70 @@
       margin-top: 26px;
     }
 
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    .modal {
+      position: relative;
+      width: min(520px, 100%);
+      padding: 36px 28px;
+      overflow: hidden;
+      border-radius: 26px;
+      text-align: center;
+      background: white;
+      box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+    }
+
+    .modal-icon {
+      font-size: 62px;
+    }
+
+    .modal h2 {
+      margin: 10px 0 8px;
+      color: var(--navy);
+      font-size: 31px;
+    }
+
+    .modal p {
+      color: var(--muted);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .confetti {
+      position: absolute;
+      top: -18px;
+      width: 10px;
+      height: 18px;
+      border-radius: 4px;
+      animation: fall 2.7s linear forwards;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(520px) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
     footer {
       padding: 30px 20px;
       color: #cbd5e1;
@@ -745,7 +855,7 @@
       </a>
 
       <div class="nav-links">
-        <a href="#themes">Thèmes</a>
+        <a href="#themes">Progression</a>
         <a href="#quiz">Quiz</a>
       </div>
     </nav>
@@ -754,26 +864,28 @@
   <section class="hero">
     <div class="container hero-grid">
       <div>
-        <span class="eyebrow">Apprendre SQL en pratiquant</span>
-        <h1>Progresse en <strong>SQL</strong>, question après question.</h1>
+        <span class="eyebrow">Progression guidée en SQL</span>
+        <h1>Apprends SQL du plus <strong>simple</strong> au plus avancé.</h1>
         <p>
-          Sélectionne un thème, choisis ton niveau et apprends grâce à des
-          questions simples, des réponses immédiates et des explications détaillées.
+          Commence par les fondamentaux, réussis les niveaux dans l'ordre,
+          déverrouille les thèmes suivants et progresse comme dans une vraie formation.
         </p>
 
         <div class="hero-actions">
-          <a href="#themes" class="button">Commencer un quiz →</a>
-          <a href="#quiz" class="button button-outline">Voir les quiz</a>
+          <a href="#themes" class="button">Voir ma progression →</a>
+          <button id="reset-progress-button" class="button button-outline" type="button">
+            Réinitialiser la progression
+          </button>
         </div>
       </div>
 
       <aside class="hero-card">
-        <small>EXEMPLE SQL</small>
+        <small>PARCOURS SQL</small>
 
         <div class="code-box">
-          <span class="keyword">SELECT</span> nom, email<br>
-          <span class="keyword">FROM</span> <span class="table-name">clients</span><br>
-          <span class="keyword">WHERE</span> ville = <span class="table-name">'Dakar'</span>;
+          1. <span class="keyword">Fondamentaux</span><br>
+          2. <span class="keyword">Jointures</span><br>
+          3. <span class="keyword">SQL avancé</span>
         </div>
 
         <div class="stats">
@@ -783,7 +895,7 @@
           </div>
 
           <div class="stat">
-            <strong>3</strong>
+            <strong>9</strong>
             <span>Niveaux</span>
           </div>
 
@@ -799,38 +911,38 @@
   <main class="container">
     <section id="themes">
       <div class="section-heading">
-        <h2>Choisis ton thème</h2>
-        <p>Chaque thème contient 30 questions : 10 débutant, 10 intermédiaire et 10 avancé.</p>
+        <h2>Ton parcours SQL</h2>
+        <p>Les thèmes et niveaux se déverrouillent uniquement après ta progression.</p>
       </div>
 
       <div class="theme-grid">
         <button class="theme-card" type="button" data-theme="fondamentaux">
           <div class="theme-icon">📘</div>
-          <h3>Fondamentaux SQL</h3>
-          <p>SELECT, WHERE, ORDER BY, DISTINCT, NULL, LIKE, IN et les filtres.</p>
+          <h3>1. Fondamentaux SQL</h3>
+          <p>SELECT, WHERE, ORDER BY, DISTINCT, NULL, LIKE et les filtres.</p>
           <div class="theme-footer">
-            <span>Commencer →</span>
-            <span class="pill">30 questions</span>
+            <span id="theme-status-fondamentaux">Commencer →</span>
+            <span id="theme-badge-fondamentaux" class="pill">Disponible</span>
           </div>
         </button>
 
         <button class="theme-card" type="button" data-theme="jointures">
           <div class="theme-icon">🔗</div>
-          <h3>Jointures SQL</h3>
+          <h3>2. Jointures SQL</h3>
           <p>INNER JOIN, LEFT JOIN, RIGHT JOIN, relations et clés entre les tables.</p>
           <div class="theme-footer">
-            <span>Commencer →</span>
-            <span class="pill">30 questions</span>
+            <span id="theme-status-jointures">Verrouillé</span>
+            <span id="theme-badge-jointures" class="pill pill-lock">🔒 Verrouillé</span>
           </div>
         </button>
 
         <button class="theme-card" type="button" data-theme="avance">
           <div class="theme-icon">📊</div>
-          <h3>SQL avancé</h3>
+          <h3>3. SQL avancé</h3>
           <p>GROUP BY, HAVING, CTE, sous-requêtes et fonctions de fenêtre.</p>
           <div class="theme-footer">
-            <span>Commencer →</span>
-            <span class="pill">30 questions</span>
+            <span id="theme-status-avance">Verrouillé</span>
+            <span id="theme-badge-avance" class="pill pill-lock">🔒 Verrouillé</span>
           </div>
         </button>
       </div>
@@ -839,40 +951,43 @@
     <section id="quiz">
       <div class="section-heading">
         <h2 id="quiz-main-title">Ton espace d'entraînement</h2>
-        <p id="quiz-main-description">Sélectionne un thème SQL pour démarrer.</p>
+        <p id="quiz-main-description">Sélectionne le premier thème pour commencer ton parcours.</p>
       </div>
 
       <div class="quiz-shell">
         <div class="empty-state" id="empty-state">
           <div class="empty-icon">🎯</div>
-          <h3>Prêt à tester tes connaissances ?</h3>
-          <p>Commence par sélectionner un thème SQL ci-dessus.</p>
+          <h3>Prêt à commencer ?</h3>
+          <p>Commence par le thème Fondamentaux SQL et avance étape par étape.</p>
           <a href="#themes" class="button">Voir les thèmes</a>
         </div>
 
         <div id="level-panel" hidden>
           <h3>Choisis ton niveau</h3>
-          <p class="intro">Chaque niveau contient 10 questions avec une correction immédiate.</p>
+          <p class="intro">Tu dois réussir les niveaux dans l'ordre : débutant, intermédiaire, puis avancé.</p>
 
           <div class="level-grid">
             <button class="level-card" type="button" data-level="debutant">
               <strong>Débutant</strong>
-              <span>Les bases indispensables pour commencer SQL.</span>
+              <span>10 questions sur les bases essentielles.</span>
+              <span id="level-score-debutant" class="level-score"></span>
             </button>
 
             <button class="level-card" type="button" data-level="intermediaire">
               <strong>Intermédiaire</strong>
-              <span>Des requêtes plus complètes et des cas plus pratiques.</span>
+              <span>10 questions pour aller plus loin.</span>
+              <span id="level-score-intermediaire" class="level-score"></span>
             </button>
 
             <button class="level-card" type="button" data-level="avance">
               <strong>Avancé</strong>
-              <span>Des notions SQL plus proches des situations réelles.</span>
+              <span>10 questions proches de cas réels.</span>
+              <span id="level-score-avance" class="level-score"></span>
             </button>
           </div>
 
           <button id="back-to-themes" class="button button-outline" type="button">
-            ← Changer de thème
+            ← Retour aux thèmes
           </button>
         </div>
 
@@ -937,23 +1052,49 @@
           </div>
 
           <h3>Correction détaillée</h3>
-          <p class="intro">Relis les explications pour mieux comprendre les notions à revoir.</p>
+          <p class="intro">Relis les explications, puis poursuis ta progression.</p>
 
           <div id="review-container"></div>
 
           <div class="result-actions">
             <button id="retry-button" class="button" type="button">Refaire ce niveau</button>
-            <button id="new-level-button" class="button button-outline" type="button">Changer de niveau</button>
-            <button id="new-theme-button" class="button button-outline" type="button">Changer de thème</button>
+            <button id="continue-button" class="button button-success" type="button" hidden>
+              Continuer →
+            </button>
+            <button id="new-theme-button" class="button button-outline" type="button">
+              Retour aux thèmes
+            </button>
           </div>
         </div>
       </div>
     </section>
   </main>
 
+  <div id="success-modal" class="modal-backdrop" hidden>
+    <div id="success-modal-box" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-icon">🎉</div>
+      <h2 id="modal-title">Félicitations !</h2>
+      <p id="modal-message"></p>
+
+      <div class="modal-actions">
+        <button id="modal-retry-button" class="button button-outline" type="button" hidden>
+          Refaire ce niveau
+        </button>
+
+        <button id="modal-continue-button" class="button button-success" type="button" hidden>
+          Continuer →
+        </button>
+
+        <button id="modal-close-button" class="button" type="button">
+          Voir ma correction
+        </button>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <p><strong>SQL Master Quiz</strong> — Apprendre, pratiquer et progresser.</p>
-    <p>Projet GitHub interactif pour développer ses compétences SQL.</p>
+    <p>90 questions SQL, 9 niveaux et une progression guidée.</p>
   </footer>
 
   <script>
@@ -965,617 +1106,83 @@
         description: "Les commandes essentielles pour lire, filtrer, trier et organiser des données.",
         levels: {
           debutant: [
-            {
-              text: "Quelle commande SQL permet de lire des données dans une table ?",
-              options: ["INSERT", "SELECT", "UPDATE", "DELETE"],
-              answer: 1,
-              explanation: "SELECT permet de récupérer et d'afficher des données stockées dans une table."
-            },
-            {
-              text: "Quelle clause indique la table utilisée dans une requête ?",
-              options: ["FROM", "WHERE", "ORDER BY", "HAVING"],
-              answer: 0,
-              explanation: "FROM indique la table depuis laquelle SQL doit récupérer les données."
-            },
-            {
-              text: "Quelle clause permet de filtrer les lignes selon une condition ?",
-              options: ["WHERE", "SELECT", "DISTINCT", "ORDER BY"],
-              answer: 0,
-              explanation: "WHERE permet de sélectionner uniquement les lignes qui respectent une condition."
-            },
-            {
-              text: "Quelle requête affiche toutes les colonnes de la table clients ?",
-              options: [
-                "SELECT clients;",
-                "SELECT * FROM clients;",
-                "GET * clients;",
-                "SHOW clients;"
-              ],
-              answer: 1,
-              explanation: "L'astérisque (*) signifie toutes les colonnes de la table."
-            },
-            {
-              text: "Quel mot-clé permet de supprimer les doublons dans le résultat ?",
-              options: ["DISTINCT", "UNIQUE", "REMOVE", "FILTER"],
-              answer: 0,
-              explanation: "DISTINCT retire les valeurs répétées dans les résultats affichés."
-            },
-            {
-              text: "Quelle condition sélectionne les produits dont le prix est supérieur à 1000 ?",
-              options: [
-                "WHERE prix < 1000",
-                "WHERE prix = 1000",
-                "WHERE prix > 1000",
-                "ORDER BY prix > 1000"
-              ],
-              answer: 2,
-              explanation: "Le symbole > signifie strictement supérieur à."
-            },
-            {
-              text: "Quel opérateur SQL signifie « égal à » ?",
-              options: ["=", "==", ":=", "=>"],
-              answer: 0,
-              explanation: "En SQL, le symbole = compare une valeur à une autre valeur."
-            },
-            {
-              text: "Quelle requête récupère uniquement le nom et l'email des clients ?",
-              options: [
-                "SELECT nom, email FROM clients;",
-                "GET nom, email FROM clients;",
-                "SELECT clients FROM nom, email;",
-                "FROM clients SELECT nom, email;"
-              ],
-              answer: 0,
-              explanation: "SELECT choisit les colonnes à afficher, puis FROM indique la table."
-            },
-            {
-              text: "Quelle clause permet de trier les résultats ?",
-              options: ["ORDER BY", "WHERE", "GROUP BY", "DISTINCT"],
-              answer: 0,
-              explanation: "ORDER BY permet de classer les résultats par nom, date, prix ou toute autre colonne."
-            },
-            {
-              text: "Que signifie ORDER BY prix DESC ?",
-              options: [
-                "Trier les prix du plus petit au plus grand",
-                "Trier les prix du plus grand au plus petit",
-                "Supprimer les prix",
-                "Filtrer les prix élevés"
-              ],
-              answer: 1,
-              explanation: "DESC signifie décroissant : les valeurs les plus grandes apparaissent d'abord."
-            }
+            ["Quelle commande SQL permet de lire des données dans une table ?", ["INSERT", "SELECT", "UPDATE", "DELETE"], 1, "SELECT permet de récupérer et d'afficher les données d'une table."],
+            ["Quelle clause indique la table utilisée dans une requête ?", ["FROM", "WHERE", "ORDER BY", "HAVING"], 0, "FROM indique la table depuis laquelle SQL récupère les données."],
+            ["Quelle clause permet de filtrer des lignes selon une condition ?", ["WHERE", "SELECT", "DISTINCT", "ORDER BY"], 0, "WHERE sélectionne les lignes qui respectent une condition."],
+            ["Quelle requête affiche toutes les colonnes de la table clients ?", ["SELECT clients;", "SELECT * FROM clients;", "GET * clients;", "SHOW clients;"], 1, "L'astérisque signifie toutes les colonnes."],
+            ["Quel mot-clé permet de supprimer les doublons dans un résultat ?", ["DISTINCT", "UNIQUE", "REMOVE", "FILTER"], 0, "DISTINCT évite d'afficher plusieurs fois la même valeur."],
+            ["Quelle condition sélectionne les produits dont le prix est supérieur à 1000 ?", ["WHERE prix < 1000", "WHERE prix = 1000", "WHERE prix > 1000", "ORDER BY prix > 1000"], 2, "Le symbole > signifie strictement supérieur à."],
+            ["Quel opérateur SQL signifie égal à ?", ["=", "==", ":=", "=>"], 0, "En SQL, le symbole = compare deux valeurs."],
+            ["Quelle requête récupère uniquement nom et email depuis clients ?", ["SELECT nom, email FROM clients;", "GET nom, email FROM clients;", "SELECT clients FROM nom, email;", "FROM clients SELECT nom, email;"], 0, "SELECT choisit les colonnes et FROM indique la table."],
+            ["Quelle clause permet de trier les résultats ?", ["ORDER BY", "WHERE", "GROUP BY", "DISTINCT"], 0, "ORDER BY classe les résultats selon une ou plusieurs colonnes."],
+            ["Que signifie ORDER BY prix DESC ?", ["Trier du plus petit au plus grand", "Trier du plus grand au plus petit", "Supprimer les prix", "Filtrer les prix élevés"], 1, "DESC signifie décroissant."]
           ],
-
           intermediaire: [
-            {
-              text: "Comment vérifier qu'une colonne ne contient aucune valeur ?",
-              options: [
-                "colonne = NULL",
-                "colonne IS NULL",
-                "colonne == NULL",
-                "colonne EMPTY"
-              ],
-              answer: 1,
-              explanation: "NULL représente l'absence de valeur. En SQL, on utilise IS NULL."
-            },
-            {
-              text: "Quel opérateur permet de vérifier si une valeur appartient à une liste ?",
-              options: ["IN", "LIKE", "BETWEEN", "ORDER BY"],
-              answer: 0,
-              explanation: "IN permet de comparer une colonne avec plusieurs valeurs possibles."
-            },
-            {
-              text: "À quoi sert l'opérateur LIKE ?",
-              options: [
-                "Chercher du texte avec un modèle",
-                "Additionner deux colonnes",
-                "Supprimer les doublons",
-                "Créer une table"
-              ],
-              answer: 0,
-              explanation: "LIKE sert à rechercher une valeur texte selon un modèle, par exemple nom LIKE 'A%'."
-            },
-            {
-              text: "Dans LIKE 'Da%', que signifie le symbole % ?",
-              options: [
-                "Un seul caractère obligatoire",
-                "Zéro, un ou plusieurs caractères",
-                "Un chiffre uniquement",
-                "Un espace obligatoire"
-              ],
-              answer: 1,
-              explanation: "Le symbole % représente une suite de caractères, même vide."
-            },
-            {
-              text: "Quelle condition sélectionne les âges compris entre 18 et 30 inclus ?",
-              options: [
-                "WHERE age IN 18, 30",
-                "WHERE age BETWEEN 18 AND 30",
-                "WHERE age > 18 OR age < 30",
-                "WHERE age = 18 TO 30"
-              ],
-              answer: 1,
-              explanation: "BETWEEN inclut les deux bornes. Ici, 18 et 30 sont inclus."
-            },
-            {
-              text: "Quelle requête affiche les 5 premières lignes dans SQL Server ?",
-              options: [
-                "SELECT LIMIT 5 FROM clients;",
-                "SELECT TOP 5 * FROM clients;",
-                "SELECT FIRST 5 * FROM clients;",
-                "SELECT * FIRST 5 clients;"
-              ],
-              answer: 1,
-              explanation: "Dans SQL Server, TOP permet de limiter le nombre de lignes retournées."
-            },
-            {
-              text: "Quelle clause trie les clients par nom de A à Z ?",
-              options: [
-                "ORDER BY nom ASC",
-                "ORDER BY nom DESC",
-                "WHERE nom ASC",
-                "GROUP BY nom ASC"
-              ],
-              answer: 0,
-              explanation: "ASC signifie croissant. Pour un texte, cela correspond généralement à l'ordre alphabétique."
-            },
-            {
-              text: "Quelle condition sélectionne les clients qui ne vivent pas à Dakar ?",
-              options: [
-                "WHERE ville <> 'Dakar'",
-                "WHERE ville =! 'Dakar'",
-                "WHERE ville NOT 'Dakar'",
-                "WHERE ville DIFFERENT 'Dakar'"
-              ],
-              answer: 0,
-              explanation: "L'opérateur <> signifie différent de."
-            },
-            {
-              text: "Quel mot-clé permet de donner un autre nom à une colonne dans le résultat ?",
-              options: ["AS", "TO", "NAME", "RENAME"],
-              answer: 0,
-              explanation: "AS permet de créer un alias, par exemple SELECT nom AS nom_client FROM clients."
-            },
-            {
-              text: "Quelle requête calcule un prix réduit de 10 % ?",
-              options: [
-                "SELECT prix * 0.90 AS prix_reduit FROM produits;",
-                "SELECT prix - 10 AS prix_reduit FROM produits;",
-                "SELECT prix / 10 AS prix_reduit FROM produits;",
-                "SELECT prix + 0.90 AS prix_reduit FROM produits;"
-              ],
-              answer: 0,
-              explanation: "Une réduction de 10 % signifie conserver 90 % du prix, donc prix multiplié par 0.90."
-            }
+            ["Comment vérifier qu'une colonne ne contient aucune valeur ?", ["colonne = NULL", "colonne IS NULL", "colonne == NULL", "colonne EMPTY"], 1, "Pour vérifier une valeur absente, SQL utilise IS NULL."],
+            ["Quel opérateur vérifie si une valeur appartient à une liste ?", ["IN", "LIKE", "BETWEEN", "ORDER BY"], 0, "IN compare une colonne avec plusieurs valeurs possibles."],
+            ["À quoi sert LIKE ?", ["Chercher un texte avec un modèle", "Additionner deux colonnes", "Supprimer les doublons", "Créer une table"], 0, "LIKE sert à rechercher des textes avec des caractères génériques."],
+            ["Dans LIKE 'Da%', que signifie le symbole % ?", ["Un caractère obligatoire", "Zéro, un ou plusieurs caractères", "Un chiffre uniquement", "Un espace obligatoire"], 1, "% représente une suite de caractères, même vide."],
+            ["Quelle condition sélectionne les âges compris entre 18 et 30 inclus ?", ["WHERE age IN 18, 30", "WHERE age BETWEEN 18 AND 30", "WHERE age > 18 OR age < 30", "WHERE age = 18 TO 30"], 1, "BETWEEN inclut les deux limites."],
+            ["Quelle requête affiche les 5 premières lignes dans SQL Server ?", ["SELECT LIMIT 5 FROM clients;", "SELECT TOP 5 * FROM clients;", "SELECT FIRST 5 * FROM clients;", "SELECT * FIRST 5 clients;"], 1, "Dans SQL Server, TOP limite le nombre de lignes retournées."],
+            ["Quelle clause trie les noms de A à Z ?", ["ORDER BY nom ASC", "ORDER BY nom DESC", "WHERE nom ASC", "GROUP BY nom ASC"], 0, "ASC signifie croissant."],
+            ["Quelle condition sélectionne les clients qui ne vivent pas à Dakar ?", ["WHERE ville <> 'Dakar'", "WHERE ville =! 'Dakar'", "WHERE ville NOT 'Dakar'", "WHERE ville DIFFERENT 'Dakar'"], 0, "<> signifie différent de."],
+            ["Quel mot-clé permet de donner un autre nom à une colonne ?", ["AS", "TO", "NAME", "RENAME"], 0, "AS crée un alias, par exemple nom AS nom_client."],
+            ["Quelle requête calcule un prix réduit de 10 % ?", ["SELECT prix * 0.90 AS prix_reduit FROM produits;", "SELECT prix - 10 AS prix_reduit FROM produits;", "SELECT prix / 10 AS prix_reduit FROM produits;", "SELECT prix + 0.90 AS prix_reduit FROM produits;"], 0, "Une réduction de 10 % conserve 90 % du prix."]
           ],
-
           avance: [
-            {
-              text: "Quelle condition sélectionne les lignes dont la colonne contient une valeur ?",
-              options: [
-                "WHERE colonne <> NULL",
-                "WHERE colonne IS NOT NULL",
-                "WHERE colonne != NULL",
-                "WHERE colonne NOT EMPTY"
-              ],
-              answer: 1,
-              explanation: "Pour vérifier qu'une valeur existe, on utilise IS NOT NULL."
-            },
-            {
-              text: "Que fait COUNT(colonne) lorsqu'une ligne possède NULL dans cette colonne ?",
-              options: [
-                "La ligne est comptée",
-                "La ligne n'est pas comptée",
-                "La requête échoue",
-                "NULL devient automatiquement 0"
-              ],
-              answer: 1,
-              explanation: "COUNT(colonne) compte seulement les valeurs non NULL de cette colonne."
-            },
-            {
-              text: "Quelle fonction SQL Server peut remplacer une valeur NULL par 0 ?",
-              options: [
-                "ISNULL(colonne, 0)",
-                "NULLTOZERO(colonne)",
-                "EMPTY(colonne, 0)",
-                "REPLACE NULL WITH 0"
-              ],
-              answer: 0,
-              explanation: "ISNULL(valeur, remplacement) retourne le remplacement lorsque la valeur est NULL."
-            },
-            {
-              text: "Quelle condition sélectionne les clients dont le nom commence par M ?",
-              options: [
-                "WHERE nom LIKE 'M%'",
-                "WHERE nom LIKE '%M'",
-                "WHERE nom LIKE '_M_'",
-                "WHERE nom = 'M%'"
-              ],
-              answer: 0,
-              explanation: "M% signifie : commence par M, puis accepte zéro ou plusieurs caractères après."
-            },
-            {
-              text: "Que sélectionne WHERE prix NOT BETWEEN 100 AND 500 ?",
-              options: [
-                "Les prix entre 100 et 500",
-                "Les prix inférieurs à 100 ou supérieurs à 500",
-                "Les prix égaux à 100 et 500",
-                "Toutes les lignes"
-              ],
-              answer: 1,
-              explanation: "NOT BETWEEN exclut l'intervalle 100 à 500."
-            },
-            {
-              text: "Pourquoi utilise-t-on des guillemets autour de 'Dakar' dans une requête ?",
-              options: [
-                "Pour indiquer qu'il s'agit d'un texte",
-                "Pour transformer Dakar en nombre",
-                "Parce que toutes les colonnes doivent être entre guillemets",
-                "Pour supprimer les espaces"
-              ],
-              answer: 0,
-              explanation: "Les guillemets indiquent à SQL que Dakar est une valeur texte."
-            },
-            {
-              text: "Quelle condition est correcte pour sélectionner Dakar et Saint-Louis ?",
-              options: [
-                "WHERE ville IN ('Dakar', 'Saint-Louis')",
-                "WHERE ville = ('Dakar', 'Saint-Louis')",
-                "WHERE ville LIKE ('Dakar', 'Saint-Louis')",
-                "WHERE ville BETWEEN 'Dakar' AND 'Saint-Louis'"
-              ],
-              answer: 0,
-              explanation: "IN permet de filtrer une colonne avec une liste de valeurs possibles."
-            },
-            {
-              text: "Pourquoi utiliser un alias pour une table, comme clients AS c ?",
-              options: [
-                "Pour rendre une requête plus courte et plus claire",
-                "Pour supprimer la table clients",
-                "Pour créer une copie permanente",
-                "Pour modifier les données automatiquement"
-              ],
-              answer: 0,
-              explanation: "Un alias est un nom temporaire utile, notamment dans les jointures."
-            },
-            {
-              text: "Quelle condition recherche les emails qui se terminent par @gmail.com ?",
-              options: [
-                "WHERE email LIKE '%@gmail.com'",
-                "WHERE email LIKE '@gmail.com%'",
-                "WHERE email = '%@gmail.com'",
-                "WHERE email IN '@gmail.com'"
-              ],
-              answer: 0,
-              explanation: "Le % au début représente tous les caractères placés avant @gmail.com."
-            },
-            {
-              text: "Pourquoi vaut-il mieux sélectionner seulement les colonnes utiles au lieu de toujours utiliser SELECT * ?",
-              options: [
-                "La requête est plus claire et récupère moins de données inutiles",
-                "SELECT * est interdit sur les grandes tables",
-                "Cela crée automatiquement un index",
-                "Cela supprime les valeurs NULL"
-              ],
-              answer: 0,
-              explanation: "Sélectionner uniquement les colonnes nécessaires améliore la lisibilité et peut réduire le volume de données."
-            }
+            ["Quelle condition sélectionne les lignes dont une colonne contient une valeur ?", ["WHERE colonne <> NULL", "WHERE colonne IS NOT NULL", "WHERE colonne != NULL", "WHERE colonne NOT EMPTY"], 1, "Pour vérifier qu'une valeur existe, on utilise IS NOT NULL."],
+            ["Que fait COUNT(colonne) lorsqu'une ligne contient NULL ?", ["La ligne est comptée", "La ligne n'est pas comptée", "La requête échoue", "NULL devient 0"], 1, "COUNT(colonne) compte seulement les valeurs non NULL."],
+            ["Quelle fonction SQL Server remplace NULL par 0 ?", ["ISNULL(colonne, 0)", "NULLTOZERO(colonne)", "EMPTY(colonne, 0)", "REPLACE NULL WITH 0"], 0, "ISNULL(valeur, remplacement) remplace une valeur NULL."],
+            ["Quelle condition sélectionne les noms commençant par M ?", ["WHERE nom LIKE 'M%'", "WHERE nom LIKE '%M'", "WHERE nom LIKE '_M_'", "WHERE nom = 'M%'"], 0, "M% signifie : commence par M, puis accepte les caractères suivants."],
+            ["Que sélectionne WHERE prix NOT BETWEEN 100 AND 500 ?", ["Les prix entre 100 et 500", "Les prix inférieurs à 100 ou supérieurs à 500", "Les prix égaux à 100 et 500", "Toutes les lignes"], 1, "NOT BETWEEN exclut l'intervalle donné."],
+            ["Pourquoi utilise-t-on des guillemets autour de 'Dakar' ?", ["Pour indiquer une valeur texte", "Pour convertir en nombre", "Toutes les colonnes doivent avoir des guillemets", "Pour supprimer les espaces"], 0, "Les guillemets montrent que Dakar est une chaîne de caractères."],
+            ["Quelle condition sélectionne Dakar et Saint-Louis ?", ["WHERE ville IN ('Dakar', 'Saint-Louis')", "WHERE ville = ('Dakar', 'Saint-Louis')", "WHERE ville LIKE ('Dakar', 'Saint-Louis')", "WHERE ville BETWEEN 'Dakar' AND 'Saint-Louis'"], 0, "IN est adapté à une liste de valeurs."],
+            ["Pourquoi utiliser un alias comme clients AS c ?", ["Pour rendre la requête plus courte et claire", "Pour supprimer la table", "Pour copier définitivement la table", "Pour modifier les données"], 0, "Un alias est un nom temporaire pratique dans les requêtes."],
+            ["Quelle condition recherche les emails terminant par @gmail.com ?", ["WHERE email LIKE '%@gmail.com'", "WHERE email LIKE '@gmail.com%'", "WHERE email = '%@gmail.com'", "WHERE email IN '@gmail.com'"], 0, "% représente les caractères placés avant @gmail.com."],
+            ["Pourquoi éviter SELECT * lorsque possible ?", ["Pour récupérer seulement les données utiles", "SELECT * est interdit", "Pour créer un index", "Pour supprimer les NULL"], 0, "Sélectionner les colonnes utiles rend la requête plus claire et souvent plus efficace."]
           ]
         }
       },
 
       jointures: {
         title: "Jointures SQL",
-        description: "Comprendre comment relier plusieurs tables et récupérer les informations associées.",
+        description: "Apprendre à relier plusieurs tables et à récupérer les informations associées.",
         levels: {
           debutant: [
-            {
-              text: "Pourquoi utilise-t-on une jointure SQL ?",
-              options: [
-                "Pour relier des données provenant de plusieurs tables",
-                "Pour supprimer une table",
-                "Pour modifier un mot de passe",
-                "Pour créer une base de données"
-              ],
-              answer: 0,
-              explanation: "Une jointure sert à combiner les informations de tables liées entre elles."
-            },
-            {
-              text: "Quelle jointure garde uniquement les lignes ayant une correspondance dans les deux tables ?",
-              options: ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN", "CROSS JOIN"],
-              answer: 0,
-              explanation: "INNER JOIN retourne uniquement les lignes qui possèdent une correspondance dans les deux tables."
-            },
-            {
-              text: "Quelle jointure conserve toutes les lignes de la table située à gauche ?",
-              options: ["LEFT JOIN", "INNER JOIN", "CROSS JOIN", "DELETE JOIN"],
-              answer: 0,
-              explanation: "LEFT JOIN conserve toutes les lignes de la table de gauche, même sans correspondance à droite."
-            },
-            {
-              text: "Dans Clients et Commandes, quelle colonne relie généralement une commande à son client ?",
-              options: [
-                "Clients.id_client = Commandes.id_client",
-                "Clients.nom = Commandes.date_commande",
-                "Clients.ville = Commandes.montant",
-                "Clients.email = Commandes.prix"
-              ],
-              answer: 0,
-              explanation: "La clé id_client permet habituellement d'associer chaque commande au bon client."
-            },
-            {
-              text: "Quel mot-clé introduit la condition d'une jointure ?",
-              options: ["ON", "WHERE", "FROM", "AS"],
-              answer: 0,
-              explanation: "ON indique la condition qui relie les colonnes des deux tables."
-            },
-            {
-              text: "Que se passe-t-il dans un LEFT JOIN si aucune ligne ne correspond à droite ?",
-              options: [
-                "La ligne de gauche est supprimée",
-                "Les colonnes de droite deviennent NULL",
-                "La requête échoue toujours",
-                "La ligne est déplacée"
-              ],
-              answer: 1,
-              explanation: "LEFT JOIN conserve la ligne de gauche et affiche NULL dans les colonnes de droite sans correspondance."
-            },
-            {
-              text: "Quelle table est placée avant LEFT JOIN dans une requête ?",
-              options: [
-                "La table dont toutes les lignes doivent être conservées",
-                "La table qui sera supprimée",
-                "La table qui contient le moins de lignes",
-                "La table qui contient uniquement des NULL"
-              ],
-              answer: 0,
-              explanation: "Dans un LEFT JOIN, la table écrite à gauche est celle dont toutes les lignes sont conservées."
-            },
-            {
-              text: "Quel type de relation correspond souvent à un client qui peut avoir plusieurs commandes ?",
-              options: [
-                "Un-à-plusieurs",
-                "Un-à-zéro",
-                "Plusieurs-à-zéro",
-                "Aucune relation"
-              ],
-              answer: 0,
-              explanation: "Un client peut avoir plusieurs commandes : une ligne client est liée à plusieurs lignes commande."
-            },
-            {
-              text: "Quelle colonne est généralement une clé primaire ?",
-              options: [
-                "Une colonne qui identifie chaque ligne de façon unique",
-                "Une colonne qui contient toujours du texte",
-                "Une colonne qui contient toujours des doublons",
-                "Une colonne utilisée uniquement pour trier"
-              ],
-              answer: 0,
-              explanation: "Une clé primaire identifie chaque ligne de manière unique dans une table."
-            },
-            {
-              text: "Quelle requête est une jointure correcte entre clients et commandes ?",
-              options: [
-                "SELECT * FROM clients INNER JOIN commandes ON clients.id_client = commandes.id_client;",
-                "SELECT * FROM clients JOIN commandes;",
-                "SELECT clients + commandes;",
-                "MERGE clients WITH commandes;"
-              ],
-              answer: 0,
-              explanation: "Une jointure correcte indique les deux tables et la condition de relation avec ON."
-            }
+            ["Pourquoi utilise-t-on une jointure SQL ?", ["Pour relier les données de plusieurs tables", "Pour supprimer une table", "Pour modifier un mot de passe", "Pour créer une base"], 0, "Une jointure permet de combiner des informations issues de tables liées."],
+            ["Quelle jointure garde seulement les lignes ayant une correspondance dans les deux tables ?", ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN", "CROSS JOIN"], 0, "INNER JOIN conserve uniquement les lignes correspondantes."],
+            ["Quelle jointure conserve toutes les lignes de la table située à gauche ?", ["LEFT JOIN", "INNER JOIN", "CROSS JOIN", "DELETE JOIN"], 0, "LEFT JOIN conserve toutes les lignes de gauche."],
+            ["Dans Clients et Commandes, quelle relation est généralement correcte ?", ["Clients.id_client = Commandes.id_client", "Clients.nom = Commandes.date_commande", "Clients.ville = Commandes.montant", "Clients.email = Commandes.prix"], 0, "La clé id_client associe normalement chaque commande à son client."],
+            ["Quel mot-clé introduit la condition de jointure ?", ["ON", "WHERE", "FROM", "AS"], 0, "ON définit la relation entre les colonnes des deux tables."],
+            ["Dans un LEFT JOIN, que se passe-t-il sans correspondance à droite ?", ["La ligne de gauche disparaît", "Les colonnes de droite deviennent NULL", "La requête échoue", "La ligne est déplacée"], 1, "La ligne de gauche reste présente et les valeurs de droite deviennent NULL."],
+            ["Quelle table est écrite avant LEFT JOIN ?", ["La table dont toutes les lignes doivent être conservées", "La table supprimée", "Toujours la plus petite table", "La table avec seulement NULL"], 0, "La table située à gauche est entièrement conservée."],
+            ["Un client qui peut avoir plusieurs commandes correspond à quelle relation ?", ["Un-à-plusieurs", "Un-à-zéro", "Plusieurs-à-zéro", "Aucune relation"], 0, "Un client peut être associé à plusieurs commandes."],
+            ["Qu'est-ce qu'une clé primaire ?", ["Une colonne qui identifie chaque ligne de façon unique", "Une colonne qui contient toujours du texte", "Une colonne avec uniquement des doublons", "Une colonne pour trier"], 0, "Une clé primaire identifie une ligne de manière unique."],
+            ["Quelle jointure est correcte ?", ["SELECT * FROM clients INNER JOIN commandes ON clients.id_client = commandes.id_client;", "SELECT * FROM clients JOIN commandes;", "SELECT clients + commandes;", "MERGE clients WITH commandes;"], 0, "Une jointure doit inclure les deux tables et une condition ON."]
           ],
-
           intermediaire: [
-            {
-              text: "Quelle jointure conserve toutes les lignes de la table située à droite ?",
-              options: ["RIGHT JOIN", "INNER JOIN", "LEFT JOIN", "CROSS JOIN"],
-              answer: 0,
-              explanation: "RIGHT JOIN est l'équivalent inverse de LEFT JOIN : toutes les lignes de droite sont conservées."
-            },
-            {
-              text: "Que fait un FULL OUTER JOIN ?",
-              options: [
-                "Il conserve les lignes des deux tables, avec ou sans correspondance",
-                "Il conserve uniquement les lignes identiques",
-                "Il supprime les lignes sans correspondance",
-                "Il crée une nouvelle base"
-              ],
-              answer: 0,
-              explanation: "FULL OUTER JOIN retourne toutes les lignes des deux tables et met NULL lorsqu'il manque une correspondance."
-            },
-            {
-              text: "Quelle requête cherche les clients qui n'ont aucune commande ?",
-              options: [
-                "LEFT JOIN commandes puis WHERE commandes.id_commande IS NULL",
-                "INNER JOIN commandes puis WHERE commandes.id_commande IS NULL",
-                "CROSS JOIN commandes",
-                "ORDER BY commandes.id_commande"
-              ],
-              answer: 0,
-              explanation: "LEFT JOIN conserve tous les clients. Ceux sans commande auront NULL dans les colonnes de commandes."
-            },
-            {
-              text: "Pourquoi utilise-t-on souvent des alias comme c et co dans une jointure ?",
-              options: [
-                "Pour écrire une requête plus courte et plus lisible",
-                "Pour supprimer les colonnes inutiles",
-                "Pour créer automatiquement une clé primaire",
-                "Pour éviter l'utilisation de ON"
-              ],
-              answer: 0,
-              explanation: "Les alias raccourcissent les noms de tables et rendent les jointures plus faciles à lire."
-            },
-            {
-              text: "Quel est le risque si une commande est liée à plusieurs lignes de détail ?",
-              options: [
-                "Les lignes de résultat peuvent être multipliées",
-                "Les commandes sont automatiquement supprimées",
-                "Toutes les valeurs deviennent NULL",
-                "La jointure devient un LEFT JOIN"
-              ],
-              answer: 0,
-              explanation: "Une relation un-à-plusieurs peut créer plusieurs lignes dans le résultat pour une même commande."
-            },
-            {
-              text: "Quelle condition de jointure est la plus logique ?",
-              options: [
-                "Relier une clé primaire à une clé étrangère",
-                "Relier une date à un nom",
-                "Relier une ville à un prix",
-                "Relier deux colonnes sans relation"
-              ],
-              answer: 0,
-              explanation: "Une jointure relie le plus souvent une clé primaire d'une table à une clé étrangère d'une autre table."
-            },
-            {
-              text: "Que signifie c.id_client dans une requête SQL ?",
-              options: [
-                "La colonne id_client de la table ayant l'alias c",
-                "Une nouvelle table appelée id_client",
-                "Une fonction SQL",
-                "Une valeur obligatoire"
-              ],
-              answer: 0,
-              explanation: "La notation alias.colonne permet d'indiquer précisément de quelle table vient une colonne."
-            },
-            {
-              text: "Pourquoi faut-il préciser le nom de table devant une colonne nom dans une jointure ?",
-              options: [
-                "Parce que plusieurs tables peuvent avoir une colonne appelée nom",
-                "Parce que SQL interdit la colonne nom",
-                "Parce que cela trie automatiquement",
-                "Parce que cela transforme la colonne en texte"
-              ],
-              answer: 0,
-              explanation: "Lorsqu'une colonne existe dans plusieurs tables, préciser la table évite toute ambiguïté."
-            },
-            {
-              text: "Quelle jointure produit toutes les combinaisons possibles entre deux tables ?",
-              options: ["CROSS JOIN", "INNER JOIN", "LEFT JOIN", "RIGHT JOIN"],
-              answer: 0,
-              explanation: "CROSS JOIN réalise un produit cartésien : chaque ligne d'une table est combinée avec chaque ligne de l'autre."
-            },
-            {
-              text: "Pourquoi un CROSS JOIN peut-il retourner beaucoup de lignes ?",
-              options: [
-                "Parce qu'il combine chaque ligne de la première table avec chaque ligne de la seconde",
-                "Parce qu'il supprime les doublons",
-                "Parce qu'il ignore les tables",
-                "Parce qu'il filtre les colonnes NULL"
-              ],
-              answer: 0,
-              explanation: "Avec un CROSS JOIN, 10 lignes et 20 lignes peuvent produire 200 combinaisons."
-            }
+            ["Quelle jointure conserve toutes les lignes de la table située à droite ?", ["RIGHT JOIN", "INNER JOIN", "LEFT JOIN", "CROSS JOIN"], 0, "RIGHT JOIN conserve toutes les lignes de la table de droite."],
+            ["Que fait FULL OUTER JOIN ?", ["Conserve les lignes des deux tables, avec ou sans correspondance", "Conserve seulement les lignes identiques", "Supprime les lignes sans correspondance", "Crée une base"], 0, "FULL OUTER JOIN inclut toutes les lignes des deux tables."],
+            ["Comment trouver les clients sans commande ?", ["LEFT JOIN commandes puis WHERE commandes.id_commande IS NULL", "INNER JOIN commandes puis WHERE commandes.id_commande IS NULL", "CROSS JOIN commandes", "ORDER BY commandes.id_commande"], 0, "Après un LEFT JOIN, NULL à droite signifie aucune commande trouvée."],
+            ["Pourquoi utiliser des alias comme c et co ?", ["Pour raccourcir et rendre la requête lisible", "Pour supprimer les colonnes", "Pour créer des clés", "Pour éviter ON"], 0, "Les alias facilitent la lecture des requêtes avec plusieurs tables."],
+            ["Quel risque existe lorsqu'une commande a plusieurs lignes de détail ?", ["Les lignes du résultat peuvent être multipliées", "Les commandes sont supprimées", "Toutes les valeurs deviennent NULL", "La jointure devient LEFT JOIN"], 0, "Une relation un-à-plusieurs produit plusieurs lignes dans le résultat."],
+            ["Quelle condition de jointure est généralement la plus logique ?", ["Relier une clé primaire à une clé étrangère", "Relier une date à un nom", "Relier une ville à un prix", "Relier deux colonnes sans relation"], 0, "Les jointures s'appuient généralement sur une clé primaire et une clé étrangère."],
+            ["Que signifie c.id_client ?", ["La colonne id_client de la table ayant l'alias c", "Une nouvelle table", "Une fonction SQL", "Une valeur obligatoire"], 0, "La notation alias.colonne identifie clairement la source de la colonne."],
+            ["Pourquoi préciser la table devant une colonne nom ?", ["Parce que plusieurs tables peuvent contenir une colonne nom", "SQL interdit nom", "Cela trie automatiquement", "Cela transforme en texte"], 0, "Cela évite les ambiguïtés lorsqu'une colonne existe dans plusieurs tables."],
+            ["Quelle jointure retourne toutes les combinaisons possibles ?", ["CROSS JOIN", "INNER JOIN", "LEFT JOIN", "RIGHT JOIN"], 0, "CROSS JOIN combine chaque ligne de la première table avec chaque ligne de la seconde."],
+            ["Pourquoi CROSS JOIN peut-il retourner beaucoup de lignes ?", ["Il combine chaque ligne avec chaque ligne de l'autre table", "Il supprime les doublons", "Il ignore les tables", "Il filtre les NULL"], 0, "Le nombre de lignes est multiplié entre les deux tables."]
           ],
-
           avance: [
-            {
-              text: "Quel est le principal danger d'un INNER JOIN sur des données incomplètes ?",
-              options: [
-                "Les lignes sans correspondance sont exclues",
-                "Toutes les lignes deviennent NULL",
-                "Les tables sont supprimées",
-                "Les colonnes changent de nom"
-              ],
-              answer: 0,
-              explanation: "INNER JOIN garde seulement les lignes avec une correspondance dans les deux tables."
-            },
-            {
-              text: "Quelle technique permet de trouver les lignes présentes dans une table mais absentes d'une autre ?",
-              options: [
-                "LEFT JOIN avec WHERE colonne_droite IS NULL",
-                "INNER JOIN avec ORDER BY",
-                "CROSS JOIN avec GROUP BY",
-                "DELETE JOIN"
-              ],
-              answer: 0,
-              explanation: "Après un LEFT JOIN, une valeur NULL à droite indique qu'aucune correspondance n'a été trouvée."
-            },
-            {
-              text: "Quelle jointure utiliser pour comparer une table avec elle-même, par exemple employés et managers ?",
-              options: ["Une auto-jointure", "Un CROSS JOIN obligatoire", "Un DELETE JOIN", "Une jointure sans ON"],
-              answer: 0,
-              explanation: "Une auto-jointure relie une table à elle-même avec deux alias différents."
-            },
-            {
-              text: "Dans une auto-jointure employés e LEFT JOIN employés m, que peut représenter m ?",
-              options: [
-                "Le manager de l'employé e",
-                "Une nouvelle base de données",
-                "Une colonne supprimée",
-                "Un tri de résultats"
-              ],
-              answer: 0,
-              explanation: "Deux alias permettent de représenter deux rôles différents de la même table."
-            },
-            {
-              text: "Pourquoi faut-il faire attention aux jointures avant un SUM ou un COUNT ?",
-              options: [
-                "Les lignes multipliées peuvent fausser les agrégations",
-                "Les agrégations suppriment toujours les jointures",
-                "SUM ne fonctionne jamais avec JOIN",
-                "COUNT transforme les valeurs en texte"
-              ],
-              answer: 0,
-              explanation: "Si une jointure multiplie les lignes, une somme ou un comptage peut devenir trop grand."
-            },
-            {
-              text: "Quelle bonne pratique limite les erreurs dans les jointures ?",
-              options: [
-                "Utiliser des clés clairement définies et vérifier la cardinalité",
-                "Toujours utiliser CROSS JOIN",
-                "Ne jamais utiliser d'alias",
-                "Éviter la condition ON"
-              ],
-              answer: 0,
-              explanation: "Comprendre les clés et la relation un-à-un ou un-à-plusieurs évite beaucoup d'erreurs."
-            },
-            {
-              text: "Que signifie une relation plusieurs-à-plusieurs ?",
-              options: [
-                "Plusieurs lignes d'une table peuvent être liées à plusieurs lignes d'une autre table",
-                "Une seule ligne est liée à une seule ligne",
-                "Aucune table ne possède de clé",
-                "Toutes les valeurs sont NULL"
-              ],
-              answer: 0,
-              explanation: "Une relation plusieurs-à-plusieurs utilise souvent une table intermédiaire, par exemple inscriptions."
-            },
-            {
-              text: "Quelle table est souvent utilisée pour gérer une relation plusieurs-à-plusieurs ?",
-              options: [
-                "Une table de liaison contenant les clés des deux tables",
-                "Une table vide",
-                "Une table uniquement avec des dates",
-                "Une table sans clé"
-              ],
-              answer: 0,
-              explanation: "Une table de liaison stocke généralement les clés étrangères des deux entités reliées."
-            },
-            {
-              text: "Que peut indiquer une valeur NULL dans les colonnes de droite après un LEFT JOIN ?",
-              options: [
-                "Aucune correspondance n'a été trouvée dans la table de droite",
-                "La table de gauche est vide",
-                "La requête a été supprimée",
-                "Le tri est incorrect"
-              ],
-              answer: 0,
-              explanation: "NULL à droite signifie qu'il n'existe pas de ligne correspondante dans la table jointe."
-            },
-            {
-              text: "Pourquoi faut-il éviter SELECT * dans une jointure complexe ?",
-              options: [
-                "Parce que plusieurs colonnes peuvent avoir le même nom et rendre le résultat confus",
-                "Parce que JOIN interdit SELECT *",
-                "Parce que SQL supprime les données",
-                "Parce que les alias ne fonctionneront plus"
-              ],
-              answer: 0,
-              explanation: "Sélectionner les colonnes nécessaires rend le résultat plus clair et évite les ambiguïtés."
-            }
+            ["Quel est le risque principal d'un INNER JOIN avec des données incomplètes ?", ["Les lignes sans correspondance sont exclues", "Toutes les lignes deviennent NULL", "Les tables sont supprimées", "Les colonnes changent de nom"], 0, "INNER JOIN ne conserve que les correspondances existantes."],
+            ["Comment trouver les lignes présentes à gauche mais absentes à droite ?", ["LEFT JOIN avec WHERE colonne_droite IS NULL", "INNER JOIN avec ORDER BY", "CROSS JOIN avec GROUP BY", "DELETE JOIN"], 0, "Une valeur NULL dans la table de droite indique une absence de correspondance."],
+            ["Quelle jointure permet de relier une table à elle-même ?", ["Une auto-jointure", "CROSS JOIN obligatoire", "DELETE JOIN", "Jointure sans ON"], 0, "Une auto-jointure utilise deux alias différents pour la même table."],
+            ["Dans employés e LEFT JOIN employés m, que représente souvent m ?", ["Le manager de l'employé e", "Une nouvelle base", "Une colonne supprimée", "Un tri"], 0, "La même table représente ici deux rôles : employé et manager."],
+            ["Pourquoi faire attention aux jointures avant SUM ou COUNT ?", ["Les lignes multipliées peuvent fausser les agrégations", "Les agrégations suppriment les jointures", "SUM ne fonctionne pas avec JOIN", "COUNT transforme en texte"], 0, "Une jointure un-à-plusieurs peut multiplier les lignes et gonfler les résultats."],
+            ["Quelle bonne pratique réduit les erreurs de jointure ?", ["Vérifier les clés et la cardinalité", "Toujours utiliser CROSS JOIN", "Ne jamais utiliser d'alias", "Éviter ON"], 0, "Comprendre la relation un-à-un ou un-à-plusieurs est essentiel."],
+            ["Que signifie une relation plusieurs-à-plusieurs ?", ["Plusieurs lignes peuvent être liées à plusieurs lignes de l'autre table", "Une ligne liée à une ligne", "Aucune clé", "Toutes les valeurs NULL"], 0, "Une relation plusieurs-à-plusieurs nécessite souvent une table intermédiaire."],
+            ["Quelle table gère généralement une relation plusieurs-à-plusieurs ?", ["Une table de liaison avec les clés des deux tables", "Une table vide", "Une table avec seulement des dates", "Une table sans clé"], 0, "La table de liaison contient les clés étrangères reliant les deux entités."],
+            ["Que signifie NULL dans les colonnes de droite après LEFT JOIN ?", ["Aucune correspondance à droite", "La table de gauche est vide", "La requête supprimée", "Le tri incorrect"], 0, "Aucune ligne correspondante n'a été trouvée dans la table de droite."],
+            ["Pourquoi éviter SELECT * dans une jointure complexe ?", ["Plusieurs colonnes peuvent avoir le même nom et rendre le résultat confus", "JOIN interdit SELECT *", "SQL supprime les données", "Les alias ne marchent plus"], 0, "Choisir les colonnes utiles rend le résultat plus clair."]
           ]
         }
       },
@@ -1585,301 +1192,89 @@
         description: "Agrégations, regroupements, CTE, sous-requêtes et fonctions de fenêtre.",
         levels: {
           debutant: [
-            {
-              text: "Quelle fonction compte toutes les lignes retournées par une requête ?",
-              options: ["COUNT(*)", "SUM(*)", "TOTAL(*)", "NUMBER(*)"],
-              answer: 0,
-              explanation: "COUNT(*) compte toutes les lignes du résultat."
-            },
-            {
-              text: "Quelle fonction calcule la somme des valeurs d'une colonne ?",
-              options: ["SUM()", "COUNT()", "AVG()", "MAX()"],
-              answer: 0,
-              explanation: "SUM() additionne les valeurs numériques d'une colonne."
-            },
-            {
-              text: "Quelle fonction calcule la moyenne d'une colonne numérique ?",
-              options: ["AVG()", "SUM()", "COUNT()", "MIN()"],
-              answer: 0,
-              explanation: "AVG() calcule la moyenne des valeurs numériques."
-            },
-            {
-              text: "Quelle fonction retourne la plus grande valeur d'une colonne ?",
-              options: ["MAX()", "MIN()", "AVG()", "COUNT()"],
-              answer: 0,
-              explanation: "MAX() retourne la valeur la plus élevée."
-            },
-            {
-              text: "Quelle fonction retourne la plus petite valeur d'une colonne ?",
-              options: ["MIN()", "MAX()", "SUM()", "AVG()"],
-              answer: 0,
-              explanation: "MIN() retourne la valeur la plus faible."
-            },
-            {
-              text: "À quoi sert GROUP BY ?",
-              options: [
-                "À regrouper les lignes avant de calculer des agrégats",
-                "À supprimer une table",
-                "À modifier une clé primaire",
-                "À trier uniquement les résultats"
-              ],
-              answer: 0,
-              explanation: "GROUP BY rassemble les lignes ayant une même valeur afin de calculer COUNT, SUM ou AVG par groupe."
-            },
-            {
-              text: "Quelle requête compte le nombre total de clients ?",
-              options: [
-                "SELECT COUNT(*) FROM clients;",
-                "SELECT SUM(*) FROM clients;",
-                "SELECT CLIENTS COUNT;",
-                "COUNT clients;"
-              ],
-              answer: 0,
-              explanation: "COUNT(*) compte le nombre total de lignes dans la table clients."
-            },
-            {
-              text: "Quelle requête calcule le chiffre d'affaires total ?",
-              options: [
-                "SELECT SUM(montant) FROM commandes;",
-                "SELECT COUNT(montant) FROM commandes;",
-                "SELECT MAX(montant) FROM commandes;",
-                "SELECT montant FROM commandes;"
-              ],
-              answer: 0,
-              explanation: "SUM(montant) additionne les montants de toutes les commandes."
-            },
-            {
-              text: "Que fait GROUP BY ville ?",
-              options: [
-                "Il crée un groupe pour chaque ville",
-                "Il supprime la colonne ville",
-                "Il trie obligatoirement les villes",
-                "Il remplace les villes par NULL"
-              ],
-              answer: 0,
-              explanation: "GROUP BY ville permet d'obtenir un résultat par ville, par exemple le nombre de clients par ville."
-            },
-            {
-              text: "Quelle clause filtre les groupes après GROUP BY ?",
-              options: ["HAVING", "WHERE", "FROM", "ORDER BY"],
-              answer: 0,
-              explanation: "HAVING filtre les groupes créés par GROUP BY."
-            }
+            ["Quelle fonction compte toutes les lignes retournées ?", ["COUNT(*)", "SUM(*)", "TOTAL(*)", "NUMBER(*)"], 0, "COUNT(*) compte toutes les lignes du résultat."],
+            ["Quelle fonction calcule la somme d'une colonne ?", ["SUM()", "COUNT()", "AVG()", "MAX()"], 0, "SUM() additionne les valeurs numériques."],
+            ["Quelle fonction calcule la moyenne ?", ["AVG()", "SUM()", "COUNT()", "MIN()"], 0, "AVG() calcule la moyenne des valeurs."],
+            ["Quelle fonction retourne la plus grande valeur ?", ["MAX()", "MIN()", "AVG()", "COUNT()"], 0, "MAX() retourne la valeur maximale."],
+            ["Quelle fonction retourne la plus petite valeur ?", ["MIN()", "MAX()", "SUM()", "AVG()"], 0, "MIN() retourne la valeur minimale."],
+            ["À quoi sert GROUP BY ?", ["À regrouper les lignes avant des agrégats", "À supprimer une table", "À modifier une clé", "À trier uniquement"], 0, "GROUP BY crée des groupes pour calculer des résultats par catégorie."],
+            ["Quelle requête compte tous les clients ?", ["SELECT COUNT(*) FROM clients;", "SELECT SUM(*) FROM clients;", "SELECT CLIENTS COUNT;", "COUNT clients;"], 0, "COUNT(*) compte les lignes de la table clients."],
+            ["Quelle requête calcule le chiffre d'affaires total ?", ["SELECT SUM(montant) FROM commandes;", "SELECT COUNT(montant) FROM commandes;", "SELECT MAX(montant) FROM commandes;", "SELECT montant FROM commandes;"], 0, "SUM(montant) additionne les montants."],
+            ["Que fait GROUP BY ville ?", ["Crée un groupe pour chaque ville", "Supprime ville", "Trie obligatoirement", "Remplace par NULL"], 0, "GROUP BY ville permet des calculs par ville."],
+            ["Quelle clause filtre les groupes après GROUP BY ?", ["HAVING", "WHERE", "FROM", "ORDER BY"], 0, "HAVING filtre les groupes déjà créés."]
           ],
-
           intermediaire: [
-            {
-              text: "Quelle est la différence principale entre WHERE et HAVING ?",
-              options: [
-                "WHERE filtre les lignes avant GROUP BY, HAVING filtre les groupes après",
-                "WHERE trie les lignes, HAVING les supprime",
-                "HAVING est utilisé seulement avec JOIN",
-                "Il n'y a aucune différence"
-              ],
-              answer: 0,
-              explanation: "WHERE agit avant le regroupement, tandis que HAVING agit sur les résultats regroupés."
-            },
-            {
-              text: "Quelle requête affiche les villes ayant plus de 10 clients ?",
-              options: [
-                "SELECT ville, COUNT(*) FROM clients GROUP BY ville HAVING COUNT(*) > 10;",
-                "SELECT ville FROM clients WHERE COUNT(*) > 10;",
-                "SELECT ville, COUNT(*) FROM clients HAVING COUNT(*) > 10;",
-                "SELECT ville FROM clients GROUP BY COUNT(*) > 10;"
-              ],
-              answer: 0,
-              explanation: "Pour filtrer un résultat d'agrégation, il faut GROUP BY puis HAVING."
-            },
-            {
-              text: "Qu'est-ce qu'une sous-requête SQL ?",
-              options: [
-                "Une requête placée à l'intérieur d'une autre requête",
-                "Une copie d'une table",
-                "Un type de jointure",
-                "Une base de données temporaire"
-              ],
-              answer: 0,
-              explanation: "Une sous-requête est une requête imbriquée dans une requête principale."
-            },
-            {
-              text: "Quel mot-clé introduit une CTE dans SQL Server ?",
-              options: ["WITH", "DEFINE", "TEMP", "CREATE CTE"],
-              answer: 0,
-              explanation: "Une CTE commence par WITH nom_cte AS (...)."
-            },
-            {
-              text: "Pourquoi utiliser une CTE ?",
-              options: [
-                "Pour rendre une requête complexe plus claire et plus structurée",
-                "Pour supprimer automatiquement les doublons",
-                "Pour remplacer toutes les tables",
-                "Pour empêcher les jointures"
-              ],
-              answer: 0,
-              explanation: "Une CTE permet de découper une requête complexe en étapes plus lisibles."
-            },
-            {
-              text: "Quelle requête donne le salaire moyen par département ?",
-              options: [
-                "SELECT departement, AVG(salaire) FROM employes GROUP BY departement;",
-                "SELECT AVG(departement, salaire) FROM employes;",
-                "SELECT departement FROM employes WHERE AVG(salaire);",
-                "SELECT salaire FROM employes GROUP BY AVG(departement);"
-              ],
-              answer: 0,
-              explanation: "GROUP BY departement crée un groupe par département, puis AVG calcule la moyenne dans chaque groupe."
-            },
-            {
-              text: "Que retourne COUNT(colonne) ?",
-              options: [
-                "Le nombre de valeurs non NULL dans la colonne",
-                "Le nombre de toutes les lignes sans exception",
-                "La somme des valeurs de la colonne",
-                "La valeur la plus grande"
-              ],
-              answer: 0,
-              explanation: "COUNT(colonne) ne compte pas les valeurs NULL. COUNT(*) compte toutes les lignes."
-            },
-            {
-              text: "Quelle clause peut être utilisée pour trier un résultat agrégé ?",
-              options: ["ORDER BY", "WHERE", "ON", "DISTINCT"],
-              answer: 0,
-              explanation: "ORDER BY peut trier le résultat final, y compris après GROUP BY."
-            },
-            {
-              text: "Que fait SELECT DISTINCT ville FROM clients ?",
-              options: [
-                "Il affiche chaque ville une seule fois",
-                "Il compte les villes",
-                "Il trie obligatoirement les villes",
-                "Il supprime les clients"
-              ],
-              answer: 0,
-              explanation: "DISTINCT enlève les doublons afin qu'une même ville n'apparaisse qu'une fois."
-            },
-            {
-              text: "Quelle sous-requête sélectionne les produits dont le prix est supérieur au prix moyen ?",
-              options: [
-                "WHERE prix > (SELECT AVG(prix) FROM produits)",
-                "WHERE prix > AVG(prix)",
-                "HAVING prix > AVG(prix)",
-                "ORDER BY AVG(prix)"
-              ],
-              answer: 0,
-              explanation: "La sous-requête calcule d'abord le prix moyen, puis la requête principale compare chaque prix à cette moyenne."
-            }
+            ["Quelle différence entre WHERE et HAVING ?", ["WHERE filtre avant GROUP BY, HAVING après", "WHERE trie, HAVING supprime", "HAVING sert seulement avec JOIN", "Aucune différence"], 0, "WHERE filtre les lignes de départ ; HAVING filtre les groupes."],
+            ["Quelle requête affiche les villes avec plus de 10 clients ?", ["SELECT ville, COUNT(*) FROM clients GROUP BY ville HAVING COUNT(*) > 10;", "SELECT ville FROM clients WHERE COUNT(*) > 10;", "SELECT ville, COUNT(*) FROM clients HAVING COUNT(*) > 10;", "SELECT ville FROM clients GROUP BY COUNT(*) > 10;"], 0, "HAVING permet de filtrer un COUNT après GROUP BY."],
+            ["Qu'est-ce qu'une sous-requête ?", ["Une requête à l'intérieur d'une autre requête", "Une copie de table", "Un type de jointure", "Une base temporaire"], 0, "Une sous-requête est imbriquée dans une requête principale."],
+            ["Quel mot-clé introduit une CTE dans SQL Server ?", ["WITH", "DEFINE", "TEMP", "CREATE CTE"], 0, "Une CTE commence par WITH nom_cte AS (...)."],
+            ["Pourquoi utiliser une CTE ?", ["Pour structurer une requête complexe", "Pour supprimer automatiquement les doublons", "Pour remplacer les tables", "Pour empêcher les jointures"], 0, "Une CTE découpe une requête complexe en étapes plus lisibles."],
+            ["Quelle requête donne le salaire moyen par département ?", ["SELECT departement, AVG(salaire) FROM employes GROUP BY departement;", "SELECT AVG(departement, salaire) FROM employes;", "SELECT departement FROM employes WHERE AVG(salaire);", "SELECT salaire FROM employes GROUP BY AVG(departement);"], 0, "GROUP BY departement crée un résultat par département."],
+            ["Que retourne COUNT(colonne) ?", ["Le nombre de valeurs non NULL", "Toutes les lignes sans exception", "La somme", "La valeur la plus grande"], 0, "COUNT(colonne) ignore les valeurs NULL."],
+            ["Quelle clause trie un résultat agrégé ?", ["ORDER BY", "WHERE", "ON", "DISTINCT"], 0, "ORDER BY trie le résultat final, même après GROUP BY."],
+            ["Que fait SELECT DISTINCT ville FROM clients ?", ["Affiche chaque ville une seule fois", "Compte les villes", "Trie obligatoirement", "Supprime les clients"], 0, "DISTINCT enlève les doublons dans le résultat."],
+            ["Quelle condition sélectionne les produits plus chers que la moyenne ?", ["WHERE prix > (SELECT AVG(prix) FROM produits)", "WHERE prix > AVG(prix)", "HAVING prix > AVG(prix)", "ORDER BY AVG(prix)"], 0, "La sous-requête calcule d'abord la moyenne, ensuite chaque prix est comparé à elle."]
           ],
-
           avance: [
-            {
-              text: "Quelle fonction attribue un numéro unique aux lignes selon un ordre choisi ?",
-              options: ["ROW_NUMBER()", "SUM()", "COUNT()", "RANK_TABLE()"],
-              answer: 0,
-              explanation: "ROW_NUMBER() attribue un numéro séquentiel aux lignes selon l'ordre défini."
-            },
-            {
-              text: "Dans ROW_NUMBER() OVER (PARTITION BY departement ORDER BY salaire DESC), quel est le rôle de PARTITION BY ?",
-              options: [
-                "Redémarrer la numérotation dans chaque département",
-                "Supprimer les départements",
-                "Trier tous les départements de A à Z",
-                "Créer une nouvelle table"
-              ],
-              answer: 0,
-              explanation: "PARTITION BY crée un groupe par département et la numérotation recommence dans chaque groupe."
-            },
-            {
-              text: "Dans ROW_NUMBER() OVER (ORDER BY salaire DESC), quel salaire reçoit le numéro 1 ?",
-              options: [
-                "Le salaire le plus élevé",
-                "Le salaire le plus faible",
-                "Le salaire moyen",
-                "Un salaire choisi au hasard"
-              ],
-              answer: 0,
-              explanation: "DESC classe les salaires du plus grand au plus petit. Le plus élevé reçoit donc le numéro 1."
-            },
-            {
-              text: "Quelle différence existe entre RANK() et ROW_NUMBER() en cas d'égalité ?",
-              options: [
-                "RANK donne le même rang aux égalités, ROW_NUMBER donne toujours des numéros différents",
-                "ROW_NUMBER supprime les égalités",
-                "RANK ne peut pas trier les données",
-                "Il n'existe aucune différence"
-              ],
-              answer: 0,
-              explanation: "RANK attribue le même rang aux valeurs égales, alors que ROW_NUMBER numérote chaque ligne séparément."
-            },
-            {
-              text: "Quelle fonction peut calculer une somme cumulative ?",
-              options: [
-                "SUM(montant) OVER (ORDER BY date_commande)",
-                "COUNT(*) GROUP BY date_commande",
-                "DISTINCT SUM(date_commande)",
-                "ORDER BY SUM()"
-              ],
-              answer: 0,
-              explanation: "Avec OVER et ORDER BY, SUM peut calculer une somme progressive au fil des lignes."
-            },
-            {
-              text: "Pourquoi une fonction de fenêtre est-elle différente de GROUP BY ?",
-              options: [
-                "Elle calcule sur un ensemble de lignes sans réduire le résultat à une ligne par groupe",
-                "Elle supprime toutes les lignes du résultat",
-                "Elle ne peut jamais utiliser ORDER BY",
-                "Elle remplace toutes les jointures"
-              ],
-              answer: 0,
-              explanation: "GROUP BY réduit les lignes en groupes, tandis qu'une fonction de fenêtre conserve les lignes individuelles."
-            },
-            {
-              text: "Quelle syntaxe permet de créer une CTE nommée ventes_par_client ?",
-              options: [
-                "WITH ventes_par_client AS (SELECT ...)",
-                "CREATE ventes_par_client AS (SELECT ...)",
-                "CTE ventes_par_client = SELECT ...",
-                "TEMP ventes_par_client FROM SELECT ..."
-              ],
-              answer: 0,
-              explanation: "Une CTE SQL Server commence avec WITH, suivi du nom, de AS et de la requête entre parenthèses."
-            },
-            {
-              text: "Quel est un bon usage d'une sous-requête dans WHERE ?",
-              options: [
-                "Comparer une valeur avec un résultat calculé, comme une moyenne",
-                "Créer une clé primaire",
-                "Modifier un nom de colonne sans AS",
-                "Remplacer un LEFT JOIN automatiquement"
-              ],
-              answer: 0,
-              explanation: "Une sous-requête peut retourner une valeur, par exemple une moyenne, utilisée ensuite dans une condition."
-            },
-            {
-              text: "Que permet EXISTS dans une requête SQL ?",
-              options: [
-                "Vérifier si une sous-requête retourne au moins une ligne",
-                "Compter toutes les lignes d'une table",
-                "Supprimer automatiquement les doublons",
-                "Trier les résultats"
-              ],
-              answer: 0,
-              explanation: "EXISTS retourne vrai lorsqu'au moins une ligne est trouvée par la sous-requête."
-            },
-            {
-              text: "Quelle requête permet de trouver le meilleur salaire dans chaque département ?",
-              options: [
-                "Utiliser ROW_NUMBER() avec PARTITION BY departement et ORDER BY salaire DESC",
-                "Utiliser uniquement ORDER BY salaire",
-                "Utiliser DELETE avec GROUP BY",
-                "Utiliser SELECT DISTINCT salaire"
-              ],
-              answer: 0,
-              explanation: "ROW_NUMBER permet de classer les employés dans chaque département. Ensuite, on peut sélectionner ceux ayant le numéro 1."
-            }
+            ["Quelle fonction attribue un numéro unique aux lignes selon un ordre ?", ["ROW_NUMBER()", "SUM()", "COUNT()", "RANK_TABLE()"], 0, "ROW_NUMBER() numérote les lignes selon l'ordre demandé."],
+            ["Quel est le rôle de PARTITION BY dans ROW_NUMBER() OVER (PARTITION BY departement ORDER BY salaire DESC) ?", ["Redémarrer la numérotation dans chaque département", "Supprimer les départements", "Trier les départements", "Créer une table"], 0, "PARTITION BY crée un classement séparé dans chaque département."],
+            ["Avec ROW_NUMBER() OVER (ORDER BY salaire DESC), quel salaire reçoit le numéro 1 ?", ["Le plus élevé", "Le plus faible", "Le salaire moyen", "Un salaire aléatoire"], 0, "DESC classe les salaires du plus grand au plus petit."],
+            ["Quelle différence entre RANK() et ROW_NUMBER() lors d'une égalité ?", ["RANK donne le même rang, ROW_NUMBER donne des numéros différents", "ROW_NUMBER supprime les égalités", "RANK ne trie pas", "Aucune différence"], 0, "RANK gère les égalités par un même rang ; ROW_NUMBER non."],
+            ["Quelle expression calcule une somme cumulative ?", ["SUM(montant) OVER (ORDER BY date_commande)", "COUNT(*) GROUP BY date_commande", "DISTINCT SUM(date_commande)", "ORDER BY SUM()"], 0, "SUM avec OVER et ORDER BY produit un total progressif."],
+            ["Pourquoi une fonction de fenêtre diffère de GROUP BY ?", ["Elle conserve les lignes individuelles", "Elle supprime toutes les lignes", "Elle ne peut pas utiliser ORDER BY", "Elle remplace JOIN"], 0, "GROUP BY réduit les données en groupes, une fonction de fenêtre conserve chaque ligne."],
+            ["Quelle syntaxe crée une CTE ventes_par_client ?", ["WITH ventes_par_client AS (SELECT ...)", "CREATE ventes_par_client AS (SELECT ...)", "CTE ventes_par_client = SELECT ...", "TEMP ventes_par_client FROM SELECT ..."], 0, "WITH nom AS (...) est la syntaxe d'une CTE."],
+            ["Quel est un bon usage d'une sous-requête dans WHERE ?", ["Comparer avec une valeur calculée comme une moyenne", "Créer une clé primaire", "Renommer sans AS", "Remplacer automatiquement LEFT JOIN"], 0, "Une sous-requête fournit un résultat pour la condition principale."],
+            ["Que permet EXISTS ?", ["Vérifier si une sous-requête retourne au moins une ligne", "Compter toutes les lignes", "Supprimer les doublons", "Trier les résultats"], 0, "EXISTS est vrai si la sous-requête trouve au moins une ligne."],
+            ["Comment trouver le meilleur salaire de chaque département ?", ["ROW_NUMBER() avec PARTITION BY departement et ORDER BY salaire DESC", "ORDER BY salaire seulement", "DELETE avec GROUP BY", "SELECT DISTINCT salaire"], 0, "On classe les salaires dans chaque département puis on sélectionne le numéro 1."]
           ]
         }
       }
     };
+
+    const themeOrder = ["fondamentaux", "jointures", "avance"];
+    const levelOrder = ["debutant", "intermediaire", "avance"];
+
+    const initialProgress = {
+      unlockedThemes: ["fondamentaux"],
+      unlockedLevels: {
+        fondamentaux: ["debutant"],
+        jointures: [],
+        avance: []
+      },
+      completedLevels: {},
+      bestScores: {}
+    };
+
+    function loadProgress() {
+      const saved = localStorage.getItem("sql-master-progression");
+
+      if (!saved) {
+        return structuredClone(initialProgress);
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        return {
+          unlockedThemes: parsed.unlockedThemes || ["fondamentaux"],
+          unlockedLevels: parsed.unlockedLevels || {
+            fondamentaux: ["debutant"],
+            jointures: [],
+            avance: []
+          },
+          completedLevels: parsed.completedLevels || {},
+          bestScores: parsed.bestScores || {}
+        };
+      } catch {
+        return structuredClone(initialProgress);
+      }
+    }
+
+    let progress = loadProgress();
+
+    function saveProgress() {
+      localStorage.setItem("sql-master-progression", JSON.stringify(progress));
+    }
 
     const emptyState = document.getElementById("empty-state");
     const levelPanel = document.getElementById("level-panel");
@@ -1906,41 +1301,131 @@
     const quizForm = document.getElementById("quiz-form");
 
     const reviewContainer = document.getElementById("review-container");
+    const continueButton = document.getElementById("continue-button");
+    const retryButton = document.getElementById("retry-button");
+
+    const successModal = document.getElementById("success-modal");
+    const successModalBox = document.getElementById("success-modal-box");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMessage = document.getElementById("modal-message");
+    const modalRetryButton = document.getElementById("modal-retry-button");
+    const modalContinueButton = document.getElementById("modal-continue-button");
+    const modalCloseButton = document.getElementById("modal-close-button");
 
     let currentTheme = null;
     let currentLevel = null;
     let currentQuestionIndex = 0;
     let answers = [];
     let validated = [];
+    let nextAction = null;
 
     function getQuestions() {
-      return quizData[currentTheme].levels[currentLevel];
+      return quizData[currentTheme].levels[currentLevel].map(([text, options, answer, explanation]) => ({
+        text,
+        options,
+        answer,
+        explanation
+      }));
     }
 
     function getLevelLabel(level) {
-      const labels = {
+      return {
         debutant: "Débutant",
         intermediaire: "Intermédiaire",
         avance: "Avancé"
-      };
-
-      return labels[level];
+      }[level];
     }
 
-    function openTheme(themeKey) {
-      currentTheme = themeKey;
-      currentLevel = null;
+    function getLevelKey(theme, level) {
+      return `${theme}-${level}`;
+    }
 
-      const theme = quizData[themeKey];
+    function isThemeUnlocked(theme) {
+      return progress.unlockedThemes.includes(theme);
+    }
+
+    function isLevelUnlocked(theme, level) {
+      return progress.unlockedLevels[theme].includes(level);
+    }
+
+    function isLevelCompleted(theme, level) {
+      return Boolean(progress.completedLevels[getLevelKey(theme, level)]);
+    }
+
+    function getBestScore(theme, level) {
+      return progress.bestScores[getLevelKey(theme, level)] || 0;
+    }
+
+    function updateThemeCards() {
+      themeOrder.forEach(theme => {
+        const card = document.querySelector(`[data-theme="${theme}"]`);
+        const badge = document.getElementById(`theme-badge-${theme}`);
+        const status = document.getElementById(`theme-status-${theme}`);
+
+        const unlocked = isThemeUnlocked(theme);
+        const completed = levelOrder.every(level => isLevelCompleted(theme, level));
+
+        card.disabled = !unlocked;
+        card.classList.toggle("unlocked", unlocked);
+        card.classList.toggle("completed", completed);
+
+        if (completed) {
+          status.textContent = "Thème terminé ✓";
+          badge.textContent = "✓ Terminé";
+          badge.className = "pill pill-success";
+        } else if (unlocked) {
+          status.textContent = "Continuer →";
+          badge.textContent = "Disponible";
+          badge.className = "pill";
+        } else {
+          status.textContent = "Verrouillé";
+          badge.textContent = "🔒 Verrouillé";
+          badge.className = "pill pill-lock";
+        }
+      });
+    }
+
+    function updateLevelCards() {
+      if (!currentTheme) return;
+
+      levelOrder.forEach(level => {
+        const card = document.querySelector(`[data-level="${level}"]`);
+        const scoreText = document.getElementById(`level-score-${level}`);
+
+        const unlocked = isLevelUnlocked(currentTheme, level);
+        const completed = isLevelCompleted(currentTheme, level);
+        const bestScore = getBestScore(currentTheme, level);
+
+        card.disabled = !unlocked;
+        card.classList.toggle("completed", completed);
+
+        if (completed) {
+          scoreText.textContent = `✓ Réussi : ${bestScore}/10`;
+        } else if (unlocked && bestScore > 0) {
+          scoreText.textContent = `Meilleur score : ${bestScore}/10`;
+        } else if (!unlocked) {
+          scoreText.textContent = "🔒 Termine le niveau précédent";
+        } else {
+          scoreText.textContent = "Disponible";
+        }
+      });
+    }
+
+    function openTheme(theme) {
+      if (!isThemeUnlocked(theme)) return;
+
+      currentTheme = theme;
+      currentLevel = null;
 
       emptyState.hidden = true;
       levelPanel.hidden = false;
       quizPanel.hidden = true;
       resultsPanel.hidden = true;
 
-      quizMainTitle.textContent = theme.title;
-      quizMainDescription.textContent =
-        "Choisis un niveau. Chaque niveau contient 10 questions progressives.";
+      quizMainTitle.textContent = quizData[theme].title;
+      quizMainDescription.textContent = "Termine les niveaux dans l'ordre pour déverrouiller la suite.";
+
+      updateLevelCards();
 
       document.getElementById("quiz").scrollIntoView({
         behavior: "smooth",
@@ -1949,11 +1434,12 @@
     }
 
     function startQuiz(level) {
+      if (!isLevelUnlocked(currentTheme, level)) return;
+
       currentLevel = level;
       currentQuestionIndex = 0;
 
       const questions = getQuestions();
-
       answers = Array(questions.length).fill(null);
       validated = Array(questions.length).fill(false);
 
@@ -1963,7 +1449,7 @@
 
       quizTitle.textContent = `Quiz : ${quizData[currentTheme].title}`;
       quizDescription.textContent = quizData[currentTheme].description;
-      quizBadge.textContent = `Niveau ${getLevelLabel(currentLevel)}`;
+      quizBadge.textContent = `Niveau ${getLevelLabel(level)}`;
 
       renderQuestion();
     }
@@ -2047,34 +1533,30 @@
 
       previousButton.disabled = currentQuestionIndex === 0;
 
-      const isLastQuestion = currentQuestionIndex === total - 1;
+      const isLast = currentQuestionIndex === total - 1;
+      nextButton.hidden = isLast;
+      finishButton.hidden = !isLast;
 
-      nextButton.hidden = isLastQuestion;
-      finishButton.hidden = !isLastQuestion;
-
-      if (validated[currentQuestionIndex]) {
-        nextButton.textContent = "Question suivante →";
-      } else {
-        nextButton.textContent = "Valider puis continuer →";
-      }
+      nextButton.textContent = validated[currentQuestionIndex]
+        ? "Question suivante →"
+        : "Valider puis continuer →";
     }
 
     function displayFeedback(question) {
-      const selectedAnswer = answers[currentQuestionIndex];
-      const correct = selectedAnswer === question.answer;
+      const isCorrect = answers[currentQuestionIndex] === question.answer;
 
       const feedback = document.createElement("div");
-      feedback.className = `feedback ${correct ? "correct" : "incorrect"}`;
+      feedback.className = `feedback ${isCorrect ? "correct" : "incorrect"}`;
 
-      const title = document.createElement("strong");
-      title.textContent = correct
+      const heading = document.createElement("strong");
+      heading.textContent = isCorrect
         ? "Bonne réponse !"
         : `Réponse incorrecte. Bonne réponse : ${question.options[question.answer]}`;
 
-      const explanation = document.createElement("span");
-      explanation.textContent = question.explanation;
+      const text = document.createElement("span");
+      text.textContent = question.explanation;
 
-      feedback.append(title, explanation);
+      feedback.append(heading, text);
       feedbackContainer.appendChild(feedback);
     }
 
@@ -2086,7 +1568,6 @@
 
       validated[currentQuestionIndex] = true;
       renderQuestion();
-
       return true;
     }
 
@@ -2111,50 +1592,119 @@
       }
     }
 
-    function showResults() {
-      if (!validated[currentQuestionIndex]) {
-        const isValid = validateCurrentQuestion();
+    function unlockNextStep(score) {
+      const currentLevelIndex = levelOrder.indexOf(currentLevel);
+      const currentThemeIndex = themeOrder.indexOf(currentTheme);
+      const passed = score >= 7;
 
-        if (!isValid) {
-          return;
+      if (!passed) {
+        return {
+          passed: false,
+          perfect: false,
+          type: "retry"
+        };
+      }
+
+      progress.completedLevels[getLevelKey(currentTheme, currentLevel)] = true;
+
+      if (currentLevelIndex < levelOrder.length - 1) {
+        const nextLevel = levelOrder[currentLevelIndex + 1];
+
+        if (!progress.unlockedLevels[currentTheme].includes(nextLevel)) {
+          progress.unlockedLevels[currentTheme].push(nextLevel);
         }
 
+        return {
+          passed: true,
+          perfect: score === 10,
+          type: "next-level",
+          nextLevel
+        };
+      }
+
+      if (currentThemeIndex < themeOrder.length - 1) {
+        const nextTheme = themeOrder[currentThemeIndex + 1];
+
+        if (!progress.unlockedThemes.includes(nextTheme)) {
+          progress.unlockedThemes.push(nextTheme);
+        }
+
+        if (!progress.unlockedLevels[nextTheme].includes("debutant")) {
+          progress.unlockedLevels[nextTheme].push("debutant");
+        }
+
+        return {
+          passed: true,
+          perfect: score === 10,
+          type: "next-theme",
+          nextTheme
+        };
+      }
+
+      return {
+        passed: true,
+        perfect: score === 10,
+        type: "complete"
+      };
+    }
+
+    function saveScore(score) {
+      const key = getLevelKey(currentTheme, currentLevel);
+      const previous = progress.bestScores[key] || 0;
+
+      if (score > previous) {
+        progress.bestScores[key] = score;
+      }
+
+      saveProgress();
+    }
+
+    function showResults() {
+      if (!validated[currentQuestionIndex]) {
+        const valid = validateCurrentQuestion();
+
+        if (!valid) return;
         return;
       }
 
-      const unanswered = answers.findIndex(answer => answer === null);
+      const missing = answers.findIndex(answer => answer === null);
 
-      if (unanswered !== -1) {
-        currentQuestionIndex = unanswered;
+      if (missing !== -1) {
+        currentQuestionIndex = missing;
         renderQuestion();
-        message.textContent = "Réponds à toutes les questions avant de voir ton résultat.";
+        message.textContent = "Réponds à toutes les questions avant de terminer.";
         return;
       }
 
-      const questions = getQuestions();
       const score = getScore();
-      const percent = Math.round((score / questions.length) * 100);
+      const result = unlockNextStep(score);
 
-      document.getElementById("score-number").textContent = `${score}/${questions.length}`;
-      document.getElementById("score-percent").textContent = `${percent} %`;
+      saveScore(score);
+      updateThemeCards();
+      updateLevelCards();
+
+      document.getElementById("score-number").textContent = `${score}/10`;
+      document.getElementById("score-percent").textContent = `${score * 10} %`;
+      document.getElementById("best-score-message").textContent =
+        `Meilleur score enregistré : ${getBestScore(currentTheme, currentLevel)}/10.`;
 
       const resultMessage = document.getElementById("result-message");
 
-      if (percent === 100) {
-        resultMessage.textContent = "Excellent travail : toutes tes réponses sont correctes.";
-      } else if (percent >= 70) {
-        resultMessage.textContent = "Très bon résultat. Tu maîtrises déjà bien ce niveau.";
-      } else if (percent >= 50) {
-        resultMessage.textContent = "Bon début. Relis les corrections puis essaie à nouveau.";
+      if (score < 7) {
+        resultMessage.textContent = "Tu dois obtenir au moins 7/10 pour débloquer la suite. Relis les corrections puis refais ce niveau.";
+      } else if (score === 10) {
+        resultMessage.textContent = "Score parfait ! Tu passes automatiquement à la prochaine étape.";
       } else {
-        resultMessage.textContent = "Continue à t'entraîner : chaque explication te permet de progresser.";
+        resultMessage.textContent = "Très bon résultat ! Tu peux refaire ce niveau ou continuer vers la prochaine étape.";
       }
 
-      saveBestScore(percent);
       buildReview();
 
       quizPanel.hidden = true;
       resultsPanel.hidden = false;
+
+      configureResultActions(result, score);
+      showSuccessModal(result, score);
 
       resultsPanel.scrollIntoView({
         behavior: "smooth",
@@ -2162,18 +1712,29 @@
       });
     }
 
-    function saveBestScore(percent) {
-      const key = `sql-master-${currentTheme}-${currentLevel}`;
-      const oldScore = Number(localStorage.getItem(key) || 0);
+    function configureResultActions(result, score) {
+      continueButton.hidden = !result.passed;
+      retryButton.hidden = false;
 
-      if (percent > oldScore) {
-        localStorage.setItem(key, String(percent));
+      if (!result.passed) {
+        retryButton.textContent = "Refaire ce niveau";
+        continueButton.hidden = true;
+        return;
       }
 
-      const bestScore = Math.max(oldScore, percent);
+      if (result.type === "next-level") {
+        continueButton.textContent = `Passer au niveau ${getLevelLabel(result.nextLevel)} →`;
+      } else if (result.type === "next-theme") {
+        continueButton.textContent = "Passer au thème suivant →";
+      } else if (result.type === "complete") {
+        continueButton.textContent = "Voir mon parcours terminé";
+      }
 
-      document.getElementById("best-score-message").textContent =
-        `Meilleur score enregistré pour ce niveau : ${bestScore} %.`;
+      if (score === 10) {
+        retryButton.textContent = "Refaire pour réviser";
+      } else {
+        retryButton.textContent = "Refaire ce niveau";
+      }
     }
 
     function buildReview() {
@@ -2209,6 +1770,128 @@
       });
     }
 
+    function createConfetti() {
+      const colors = ["#4f46e5", "#06b6d4", "#f59e0b", "#22c55e", "#ec4899"];
+
+      for (let i = 0; i < 42; i++) {
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = `${Math.random() * 0.7}s`;
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+        successModalBox.appendChild(piece);
+
+        setTimeout(() => piece.remove(), 3200);
+      }
+    }
+
+    function playSuccessSound() {
+      try {
+        const context = new AudioContext();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(523.25, context.currentTime);
+        oscillator.frequency.setValueAtTime(659.25, context.currentTime + 0.12);
+        oscillator.frequency.setValueAtTime(783.99, context.currentTime + 0.24);
+
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.15, context.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.45);
+
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.46);
+      } catch {
+        // Le quiz continue même si le navigateur bloque le son.
+      }
+    }
+
+    function showSuccessModal(result, score) {
+      modalRetryButton.hidden = true;
+      modalContinueButton.hidden = true;
+      modalCloseButton.hidden = false;
+
+      if (!result.passed) {
+        modalTitle.textContent = "Continue, tu progresses !";
+        modalMessage.textContent =
+          `Tu as obtenu ${score}/10. Il faut au moins 7/10 pour débloquer la suite. Relis les corrections et refais ce niveau.`;
+        modalRetryButton.hidden = false;
+        modalRetryButton.textContent = "Refaire ce niveau";
+      } else {
+        createConfetti();
+        playSuccessSound();
+
+        if (result.type === "next-level") {
+          modalTitle.textContent = score === 10 ? "Score parfait ! Bravo !" : "Félicitations !";
+          modalMessage.textContent =
+            score === 10
+              ? `Tu as obtenu 10/10. Le niveau ${getLevelLabel(result.nextLevel)} est maintenant déverrouillé.`
+              : `Tu as obtenu ${score}/10. Tu peux refaire ce niveau ou passer au niveau ${getLevelLabel(result.nextLevel)}.`;
+
+          modalContinueButton.hidden = false;
+          modalContinueButton.textContent = `Niveau ${getLevelLabel(result.nextLevel)} →`;
+
+          if (score >= 7 && score < 10) {
+            modalRetryButton.hidden = false;
+            modalRetryButton.textContent = "Refaire ce niveau";
+          }
+        } else if (result.type === "next-theme") {
+          modalTitle.textContent = score === 10 ? "Excellent ! Thème terminé !" : "Bravo, thème terminé !";
+          modalMessage.textContent =
+            score === 10
+              ? `Tu as obtenu 10/10 et terminé ${quizData[currentTheme].title}. Le thème suivant est déverrouillé.`
+              : `Tu as réussi le dernier niveau avec ${score}/10. Le thème suivant est déverrouillé.`;
+
+          modalContinueButton.hidden = false;
+          modalContinueButton.textContent = "Thème suivant →";
+
+          if (score >= 7 && score < 10) {
+            modalRetryButton.hidden = false;
+            modalRetryButton.textContent = "Refaire ce niveau";
+          }
+        } else {
+          modalTitle.textContent = "Parcours SQL terminé !";
+          modalMessage.textContent =
+            `Bravo ! Tu as terminé les trois thèmes SQL avec un score de ${score}/10 à cette dernière étape.`;
+
+          modalContinueButton.hidden = false;
+          modalContinueButton.textContent = "Voir mon parcours";
+
+          if (score >= 7 && score < 10) {
+            modalRetryButton.hidden = false;
+            modalRetryButton.textContent = "Refaire ce niveau";
+          }
+        }
+      }
+
+      successModal.hidden = false;
+    }
+
+    function closeModal() {
+      successModal.hidden = true;
+    }
+
+    function continueProgression() {
+      closeModal();
+
+      const score = getScore();
+      const result = unlockNextStep(score);
+
+      if (result.type === "next-level") {
+        startQuiz(result.nextLevel);
+      } else if (result.type === "next-theme") {
+        openTheme(result.nextTheme);
+      } else {
+        returnToThemes();
+      }
+    }
+
     function returnToThemes() {
       currentTheme = null;
       currentLevel = null;
@@ -2222,7 +1905,9 @@
       resultsPanel.hidden = true;
 
       quizMainTitle.textContent = "Ton espace d'entraînement";
-      quizMainDescription.textContent = "Sélectionne un thème SQL pour démarrer.";
+      quizMainDescription.textContent = "Sélectionne le premier thème disponible pour continuer.";
+
+      updateThemeCards();
 
       document.getElementById("themes").scrollIntoView({
         behavior: "smooth",
@@ -2230,10 +1915,9 @@
       });
     }
 
-    function returnToLevels() {
-      resultsPanel.hidden = true;
-      quizPanel.hidden = true;
-      levelPanel.hidden = false;
+    function retryCurrentLevel() {
+      closeModal();
+      startQuiz(currentLevel);
     }
 
     document.querySelectorAll("[data-theme]").forEach(button => {
@@ -2257,13 +1941,29 @@
     });
 
     document.getElementById("back-to-themes").addEventListener("click", returnToThemes);
+    document.getElementById("new-theme-button").addEventListener("click", returnToThemes);
 
-    document.getElementById("retry-button").addEventListener("click", () => {
-      startQuiz(currentLevel);
+    retryButton.addEventListener("click", retryCurrentLevel);
+    continueButton.addEventListener("click", continueProgression);
+
+    modalRetryButton.addEventListener("click", retryCurrentLevel);
+    modalContinueButton.addEventListener("click", continueProgression);
+    modalCloseButton.addEventListener("click", closeModal);
+
+    document.getElementById("reset-progress-button").addEventListener("click", () => {
+      const confirmation = confirm(
+        "Veux-tu vraiment supprimer tous les scores et recommencer depuis le début ?"
+      );
+
+      if (!confirmation) return;
+
+      progress = structuredClone(initialProgress);
+      saveProgress();
+      updateThemeCards();
+      returnToThemes();
     });
 
-    document.getElementById("new-level-button").addEventListener("click", returnToLevels);
-    document.getElementById("new-theme-button").addEventListener("click", returnToThemes);
+    updateThemeCards();
   </script>
 </body>
 </html>
