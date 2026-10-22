@@ -22,7 +22,8 @@ import {
 } from "./configstore.js";
 
 let currentUser = null;
-let userProgress = normalizeProgress(defaultProgress);
+let userProgress =
+  normalizeProgress(defaultProgress);
 
 let currentTheme = null;
 let currentLevel = null;
@@ -32,50 +33,137 @@ let answers = [];
 let validated = [];
 
 function getElement(id) {
-  const element = document.getElementById(id);
+  const element =
+    document.getElementById(id);
 
   if (!element) {
-    console.error(`Élément HTML introuvable : #${id}`);
+    console.error(
+      `Élément HTML introuvable : #${id}`
+    );
   }
 
   return element;
 }
 
-const loginButton = getElement("google-login-button");
-const logoutButton = getElement("logout-button");
-const userArea = getElement("user-area");
-const userName = getElement("user-name");
-const userPhoto = getElement("user-photo");
+const loginButton =
+  getElement("google-login-button");
 
-const themeGrid = getElement("theme-grid");
-const levelPanel = getElement("level-panel");
-const quizPanel = getElement("quiz-panel");
-const resultsPanel = getElement("results-panel");
-const emptyState = getElement("empty-state");
+const logoutButton =
+  getElement("logout-button");
 
-const themeTitle = getElement("theme-title");
-const themeDescription = getElement("theme-description");
-const levelsContainer = getElement("levels-container");
+const userArea =
+  getElement("user-area");
 
-const quizTitle = getElement("quiz-title");
-const quizBadge = getElement("quiz-badge");
-const questionCounter = getElement("question-counter");
-const scoreLive = getElement("score-live");
-const progressFill = getElement("progress-fill");
-const questionContainer = getElement("question-container");
-const feedbackContainer = getElement("feedback-container");
-const message = getElement("message");
+const userName =
+  getElement("user-name");
 
-const previousButton = getElement("previous-button");
-const nextButton = getElement("next-button");
-const finishButton = getElement("finish-button");
+const themeGrid =
+  getElement("theme-grid");
 
-const scoreNumber = getElement("score-number");
-const scorePercent = getElement("score-percent");
-const resultMessage = getElement("result-message");
-const reviewContainer = getElement("review-container");
-const retryButton = getElement("retry-button");
-const continueButton = getElement("continue-button");
+const levelPanel =
+  getElement("level-panel");
+
+const quizPanel =
+  getElement("quiz-panel");
+
+const resultsPanel =
+  getElement("results-panel");
+
+const emptyState =
+  getElement("empty-state");
+
+const themeTitle =
+  getElement("theme-title");
+
+const themeDescription =
+  getElement("theme-description");
+
+const levelsContainer =
+  getElement("levels-container");
+
+const quizTitle =
+  getElement("quiz-title");
+
+const quizBadge =
+  getElement("quiz-badge");
+
+const questionCounter =
+  getElement("question-counter");
+
+const scoreLive =
+  getElement("score-live");
+
+const progressFill =
+  getElement("progress-fill");
+
+const questionContainer =
+  getElement("question-container");
+
+const feedbackContainer =
+  getElement("feedback-container");
+
+const message =
+  getElement("message");
+
+const previousButton =
+  getElement("previous-button");
+
+const nextButton =
+  getElement("next-button");
+
+const finishButton =
+  getElement("finish-button");
+
+const scoreNumber =
+  getElement("score-number");
+
+const scorePercent =
+  getElement("score-percent");
+
+const resultMessage =
+  getElement("result-message");
+
+const reviewContainer =
+  getElement("review-container");
+
+const retryButton =
+  getElement("retry-button");
+
+const continueButton =
+  getElement("continue-button");
+
+const dashboardSection =
+  getElement("dashboard-section");
+
+const dashboardFirstName =
+  getElement("dashboard-first-name");
+
+const dashboardScore =
+  getElement("dashboard-score");
+
+const dashboardCompleted =
+  getElement("dashboard-completed");
+
+const dashboardQuizzes =
+  getElement("dashboard-quizzes");
+
+const dashboardLevel =
+  getElement("dashboard-level");
+
+const dashboardProgressText =
+  getElement("dashboard-progress-text");
+
+const dashboardCurrentPath =
+  getElement("dashboard-current-path");
+
+const dashboardProgressFill =
+  getElement("dashboard-progress-fill");
+
+const dashboardPath =
+  getElement("dashboard-path");
+
+const dashboardContinueButton =
+  getElement("dashboard-continue-button");
 
 function elementsAreReady() {
   const requiredElements = [
@@ -83,7 +171,6 @@ function elementsAreReady() {
     logoutButton,
     userArea,
     userName,
-    userPhoto,
     themeGrid,
     levelPanel,
     quizPanel,
@@ -108,7 +195,18 @@ function elementsAreReady() {
     resultMessage,
     reviewContainer,
     retryButton,
-    continueButton
+    continueButton,
+    dashboardSection,
+    dashboardFirstName,
+    dashboardScore,
+    dashboardCompleted,
+    dashboardQuizzes,
+    dashboardLevel,
+    dashboardProgressText,
+    dashboardCurrentPath,
+    dashboardProgressFill,
+    dashboardPath,
+    dashboardContinueButton
   ];
 
   return requiredElements.every(Boolean);
@@ -117,7 +215,11 @@ function elementsAreReady() {
 function shuffle(array) {
   const copied = [...array];
 
-  for (let index = copied.length - 1; index > 0; index -= 1) {
+  for (
+    let index = copied.length - 1;
+    index > 0;
+    index -= 1
+  ) {
     const randomIndex = Math.floor(
       Math.random() * (index + 1)
     );
@@ -176,11 +278,56 @@ function getBestScore(theme, level) {
   );
 }
 
+function getFirstName(user) {
+  if (!user?.displayName) {
+    return "Utilisateur";
+  }
+
+  return user.displayName
+    .trim()
+    .split(/\s+/)[0] || "Utilisateur";
+}
+
+function getDashboardStats() {
+  const completedCount =
+    Object.values(
+      userProgress.completedLevels || {}
+    ).filter(Boolean).length;
+
+  const scores =
+    Object.values(
+      userProgress.bestScores || {}
+    ).map(Number);
+
+  const bestScore =
+    scores.length > 0
+      ? Math.max(...scores)
+      : 0;
+
+  const totalLevels =
+    themeOrder.length * levelOrder.length;
+
+  const progressPercent =
+    totalLevels > 0
+      ? Math.round(
+          (completedCount / totalLevels) * 100
+        )
+      : 0;
+
+  return {
+    completedCount,
+    bestScore,
+    totalLevels,
+    progressPercent
+  };
+}
+
 function renderUser(user) {
   if (!user) {
     loginButton.hidden = false;
     logoutButton.hidden = true;
     userArea.hidden = true;
+    dashboardSection.hidden = true;
     return;
   }
 
@@ -191,19 +338,115 @@ function renderUser(user) {
   userName.textContent =
     user.displayName || "Utilisateur";
 
-  userPhoto.src =
-    user.photoURL ||
-    "https://via.placeholder.com/44";
+  renderDashboard(user);
+}
 
-  userPhoto.alt =
-    `Photo de ${user.displayName || "l'utilisateur"}`;
+function renderDashboard(user) {
+  if (!user) {
+    dashboardSection.hidden = true;
+    return;
+  }
+
+  const stats =
+    getDashboardStats();
+
+  const theme =
+    userProgress.currentTheme;
+
+  const level =
+    userProgress.currentLevel;
+
+  const currentThemeData =
+    theme ? quizData[theme] : null;
+
+  dashboardSection.hidden = false;
+
+  dashboardFirstName.textContent =
+    getFirstName(user);
+
+  dashboardScore.textContent =
+    `${stats.bestScore}/10`;
+
+  dashboardCompleted.textContent =
+    String(stats.completedCount);
+
+  dashboardQuizzes.textContent =
+    String(userProgress.totalQuizzes || 0);
+
+  dashboardLevel.textContent =
+    levelLabel(level || "debutant");
+
+  dashboardProgressText.textContent =
+    `${stats.progressPercent} %`;
+
+  dashboardProgressFill.style.width =
+    `${stats.progressPercent}%`;
+
+  if (currentThemeData) {
+    dashboardCurrentPath.textContent =
+      `${currentThemeData.title} — ${levelLabel(level)}`;
+  } else {
+    dashboardCurrentPath.textContent =
+      "Commence ton parcours";
+  }
+
+  renderDashboardPath();
+}
+
+function renderDashboardPath() {
+  dashboardPath.replaceChildren();
+
+  themeOrder.forEach(theme => {
+    const themeData =
+      quizData[theme];
+
+    if (!themeData) {
+      return;
+    }
+
+    const item =
+      document.createElement("span");
+
+    const unlocked =
+      isThemeUnlocked(theme);
+
+    const completed =
+      levelOrder.every(level =>
+        isCompleted(theme, level)
+      );
+
+    item.className =
+      "dashboard-path-item";
+
+    if (unlocked) {
+      item.classList.add("unlocked");
+    }
+
+    if (completed) {
+      item.classList.add("completed");
+    }
+
+    let icon = "🔒";
+
+    if (completed) {
+      icon = "✅";
+    } else if (unlocked) {
+      icon = "🚀";
+    }
+
+    item.textContent =
+      `${icon} ${themeData.title}`;
+
+    dashboardPath.appendChild(item);
+  });
 }
 
 function renderThemes() {
   themeGrid.replaceChildren();
 
   themeOrder.forEach((theme, index) => {
-    const data = quizData[theme];
+    const data =
+      quizData[theme];
 
     if (!data) {
       return;
@@ -280,9 +523,12 @@ function renderThemes() {
       </div>
     `;
 
-    button.addEventListener("click", () => {
-      openTheme(theme);
-    });
+    button.addEventListener(
+      "click",
+      () => {
+        openTheme(theme);
+      }
+    );
 
     themeGrid.appendChild(button);
   });
@@ -360,7 +606,8 @@ function renderLevels() {
     if (completed) {
       scoreText = `✓ Réussi : ${score}/10`;
     } else if (unlocked && score > 0) {
-      scoreText = `Meilleur score : ${score}/10`;
+      scoreText =
+        `Meilleur score : ${score}/10`;
     } else if (unlocked) {
       scoreText = "Disponible";
     } else {
@@ -373,9 +620,12 @@ function renderLevels() {
       <small>${scoreText}</small>
     `;
 
-    button.addEventListener("click", () => {
-      startQuiz(level);
-    });
+    button.addEventListener(
+      "click",
+      () => {
+        startQuiz(level);
+      }
+    );
 
     levelsContainer.appendChild(button);
   });
@@ -704,6 +954,8 @@ async function finishQuiz() {
     userProgress =
       normalizeProgress(result.progress);
 
+    renderDashboard(currentUser);
+
     quizPanel.hidden = true;
     resultsPanel.hidden = false;
 
@@ -974,6 +1226,11 @@ if (elementsAreReady()) {
     }
   );
 
+  dashboardContinueButton.addEventListener(
+    "click",
+    continueProgression
+  );
+
   previousButton.addEventListener(
     "click",
     previousQuestion
@@ -1024,6 +1281,8 @@ if (elementsAreReady()) {
         userProgress =
           normalizeProgress(defaultProgress);
 
+        dashboardSection.hidden = true;
+
         showHome();
         return;
       }
@@ -1037,11 +1296,7 @@ if (elementsAreReady()) {
         userProgress =
           await createOrUpdateUserProfile(user);
 
-        console.log(
-          "Progression chargée :",
-          userProgress
-        );
-
+        renderDashboard(user);
         renderThemes();
 
         const savedTheme =
