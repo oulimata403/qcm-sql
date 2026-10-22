@@ -6,7 +6,6 @@ import {
   doc,
   getDoc,
   setDoc,
-  updateDoc,
   serverTimestamp,
   increment
 } from "./firebase-config.js";
@@ -41,7 +40,9 @@ export function normalizeProgress(progress = {}) {
     ...clone(defaultProgress),
     ...progress,
 
-    unlockedThemes: Array.isArray(progress.unlockedThemes)
+    unlockedThemes: Array.isArray(
+      progress.unlockedThemes
+    )
       ? progress.unlockedThemes
       : clone(defaultProgress.unlockedThemes),
 
@@ -50,21 +51,33 @@ export function normalizeProgress(progress = {}) {
       ...(progress.unlockedLevels || {})
     },
 
-    completedLevels: progress.completedLevels || {},
-    bestScores: progress.bestScores || {},
+    completedLevels:
+      progress.completedLevels || {},
 
-    totalQuizzes: Number(progress.totalQuizzes || 0),
+    bestScores:
+      progress.bestScores || {},
 
-    currentTheme: progress.currentTheme || "fondamentaux",
-    currentLevel: progress.currentLevel || "debutant"
+    totalQuizzes:
+      Number(progress.totalQuizzes || 0),
+
+    currentTheme:
+      progress.currentTheme || "fondamentaux",
+
+    currentLevel:
+      progress.currentLevel || "debutant"
   };
 }
 
 function splitName(fullName) {
-  const parts = (fullName || "Utilisateur").trim().split(/\s+/);
+  const parts = (
+    fullName || "Utilisateur"
+  ).trim().split(/\s+/);
 
-  const firstName = parts.shift() || "Utilisateur";
-  const lastName = parts.join(" ");
+  const firstName =
+    parts.shift() || "Utilisateur";
+
+  const lastName =
+    parts.join(" ");
 
   return {
     firstName,
@@ -72,9 +85,11 @@ function splitName(fullName) {
   };
 }
 
-export function getUserDocumentReference(user = auth.currentUser) {
+function getUserRef(user = auth.currentUser) {
   if (!user) {
-    throw new Error("Aucun utilisateur connecté.");
+    throw new Error(
+      "Aucun utilisateur connecté."
+    );
   }
 
   return doc(db, "users", user.uid);
@@ -84,13 +99,18 @@ export async function createOrUpdateUserProfile(
   user = auth.currentUser
 ) {
   if (!user) {
-    throw new Error("Aucun utilisateur connecté.");
+    throw new Error(
+      "Aucun utilisateur connecté."
+    );
   }
 
-  const userRef = getUserDocumentReference(user);
+  const userRef = getUserRef(user);
   const snapshot = await getDoc(userRef);
 
-  const { firstName, lastName } = splitName(user.displayName);
+  const {
+    firstName,
+    lastName
+  } = splitName(user.displayName);
 
   if (!snapshot.exists()) {
     const newProfile = {
@@ -98,7 +118,8 @@ export async function createOrUpdateUserProfile(
 
       firstName,
       lastName,
-      fullName: user.displayName || "Utilisateur",
+      fullName:
+        user.displayName || "Utilisateur",
 
       email: user.email || "",
       photoURL: user.photoURL || "",
@@ -118,26 +139,61 @@ export async function createOrUpdateUserProfile(
 
   const oldData = snapshot.data();
 
-  await updateDoc(userRef, {
+  const oldProgress =
+    normalizeProgress(oldData.progress);
+
+  const oldLoginCount =
+    Number(oldData.loginCount || 0);
+
+  const updatedProfile = {
+    uid: user.uid,
+
     firstName,
     lastName,
-    fullName: user.displayName || oldData.fullName || "Utilisateur",
-    email: user.email || oldData.email || "",
-    photoURL: user.photoURL || oldData.photoURL || "",
+    fullName:
+      user.displayName ||
+      oldData.fullName ||
+      "Utilisateur",
+
+    email:
+      user.email ||
+      oldData.email ||
+      "",
+
+    photoURL:
+      user.photoURL ||
+      oldData.photoURL ||
+      "",
+
+    loginCount: oldLoginCount + 1,
+
+    createdAt:
+      oldData.createdAt || serverTimestamp(),
 
     lastLoginAt: serverTimestamp(),
-    loginCount: increment(1)
-  });
 
-  return normalizeProgress(oldData.progress);
+    progress: oldProgress
+  };
+
+  await setDoc(
+    userRef,
+    updatedProfile,
+    { merge: true }
+  );
+
+  return oldProgress;
 }
 
-export async function getUserProfile(user = auth.currentUser) {
+export async function getUserProfile(
+  user = auth.currentUser
+) {
   if (!user) {
-    throw new Error("Aucun utilisateur connecté.");
+    throw new Error(
+      "Aucun utilisateur connecté."
+    );
   }
 
-  const userRef = getUserDocumentReference(user);
+  const userRef = getUserRef(user);
   const snapshot = await getDoc(userRef);
 
   if (!snapshot.exists()) {
@@ -154,9 +210,15 @@ export async function getUserProfile(user = auth.currentUser) {
   };
 }
 
-export async function getUserProgress(user = auth.currentUser) {
-  const profile = await getUserProfile(user);
-  return normalizeProgress(profile.progress);
+export async function getUserProgress(
+  user = auth.currentUser
+) {
+  const profile =
+    await getUserProfile(user);
+
+  return normalizeProgress(
+    profile.progress
+  );
 }
 
 export async function saveUserProgress(
@@ -164,18 +226,23 @@ export async function saveUserProgress(
   user = auth.currentUser
 ) {
   if (!user) {
-    throw new Error("Aucun utilisateur connecté.");
+    throw new Error(
+      "Aucun utilisateur connecté."
+    );
   }
 
-  const userRef = getUserDocumentReference(user);
-  const normalized = normalizeProgress(progress);
+  const userRef = getUserRef(user);
 
-  await updateDoc(userRef, {
-    progress: normalized,
-    lastProgressUpdate: serverTimestamp()
-  });
+  await setDoc(
+    userRef,
+    {
+      progress: normalizeProgress(progress),
+      lastProgressUpdate: serverTimestamp()
+    },
+    { merge: true }
+  );
 
-  return normalized;
+  return normalizeProgress(progress);
 }
 
 export async function saveQuizResult(
@@ -188,21 +255,30 @@ export async function saveQuizResult(
   user = auth.currentUser
 ) {
   if (!user) {
-    throw new Error("Aucun utilisateur connecté.");
+    throw new Error(
+      "Aucun utilisateur connecté."
+    );
   }
 
-  const progress = await getUserProgress(user);
-  const numericScore = Number(score);
-  const resultKey = `${theme}-${level}`;
+  const progress =
+    await getUserProgress(user);
 
-  const oldBestScore = Number(
-    progress.bestScores[resultKey] || 0
-  );
+  const numericScore =
+    Number(score);
 
-  progress.bestScores[resultKey] = Math.max(
-    oldBestScore,
-    numericScore
-  );
+  const resultKey =
+    `${theme}-${level}`;
+
+  const previousBest =
+    Number(
+      progress.bestScores[resultKey] || 0
+    );
+
+  progress.bestScores[resultKey] =
+    Math.max(
+      previousBest,
+      numericScore
+    );
 
   progress.totalQuizzes += 1;
 
@@ -218,73 +294,65 @@ export async function saveQuizResult(
     "avance"
   ];
 
-  const levelIndex = levels.indexOf(level);
-  const themeIndex = themes.indexOf(theme);
+  const levelIndex =
+    levels.indexOf(level);
+
+  const themeIndex =
+    themes.indexOf(theme);
 
   let nextTheme = null;
   let nextLevel = null;
 
-  /*
-    Score inférieur à 7 :
-    le niveau reste verrouillé et l'utilisateur recommence.
-  */
   if (numericScore < 7) {
     progress.currentTheme = theme;
     progress.currentLevel = level;
   }
 
-  /*
-    Score de 7 à 10 :
-    le niveau est réussi.
-  */
   if (numericScore >= 7) {
     progress.completedLevels[resultKey] = true;
 
-    /*
-      Il reste un niveau dans le même thème.
-    */
     if (levelIndex < levels.length - 1) {
       nextTheme = theme;
-      nextLevel = levels[levelIndex + 1];
+      nextLevel =
+        levels[levelIndex + 1];
 
       if (
-        !progress.unlockedLevels[theme].includes(nextLevel)
+        !progress.unlockedLevels[theme]
+          .includes(nextLevel)
       ) {
-        progress.unlockedLevels[theme].push(nextLevel);
+        progress.unlockedLevels[theme]
+          .push(nextLevel);
       }
 
       progress.currentTheme = nextTheme;
       progress.currentLevel = nextLevel;
-    }
+    } else if (
+      themeIndex < themes.length - 1
+    ) {
+      nextTheme =
+        themes[themeIndex + 1];
 
-    /*
-      Le thème est terminé :
-      on débloque le thème suivant.
-    */
-    else if (themeIndex < themes.length - 1) {
-      nextTheme = themes[themeIndex + 1];
       nextLevel = "debutant";
 
       if (
-        !progress.unlockedThemes.includes(nextTheme)
+        !progress.unlockedThemes
+          .includes(nextTheme)
       ) {
-        progress.unlockedThemes.push(nextTheme);
+        progress.unlockedThemes
+          .push(nextTheme);
       }
 
       if (
-        !progress.unlockedLevels[nextTheme].includes("debutant")
+        !progress.unlockedLevels[nextTheme]
+          .includes("debutant")
       ) {
-        progress.unlockedLevels[nextTheme].push("debutant");
+        progress.unlockedLevels[nextTheme]
+          .push("debutant");
       }
 
       progress.currentTheme = nextTheme;
       progress.currentLevel = nextLevel;
-    }
-
-    /*
-      Tous les thèmes sont terminés.
-    */
-    else {
+    } else {
       progress.currentTheme = "avance";
       progress.currentLevel = "avance";
     }
@@ -297,7 +365,8 @@ export async function saveQuizResult(
     score: numericScore,
     totalQuestions,
     passed: numericScore >= 7,
-    perfect: numericScore === totalQuestions,
+    perfect:
+      numericScore === totalQuestions,
     nextTheme,
     nextLevel
   };
