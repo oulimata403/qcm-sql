@@ -31,51 +31,103 @@ let currentIndex = 0;
 let answers = [];
 let validated = [];
 
-const loginButton = document.getElementById("google-login-button");
-const logoutButton = document.getElementById("logout-button");
-const userArea = document.getElementById("user-area");
-const userName = document.getElementById("user-name");
-const userPhoto = document.getElementById("user-photo");
+const loginButton =
+  document.getElementById("google-login-button");
 
-const themeGrid = document.getElementById("theme-grid");
-const levelPanel = document.getElementById("level-panel");
-const quizPanel = document.getElementById("quiz-panel");
-const resultsPanel = document.getElementById("results-panel");
-const emptyState = document.getElementById("empty-state");
+const logoutButton =
+  document.getElementById("logout-button");
 
-const themeTitle = document.getElementById("theme-title");
-const themeDescription = document.getElementById("theme-description");
-const levelsContainer = document.getElementById("levels-container");
+const userArea =
+  document.getElementById("user-area");
 
-const quizTitle = document.getElementById("quiz-title");
-const quizBadge = document.getElementById("quiz-badge");
-const questionCounter = document.getElementById("question-counter");
-const scoreLive = document.getElementById("score-live");
-const progressFill = document.getElementById("progress-fill");
-const questionContainer = document.getElementById("question-container");
-const feedbackContainer = document.getElementById("feedback-container");
-const message = document.getElementById("message");
+const userName =
+  document.getElementById("user-name");
 
-const previousButton = document.getElementById("previous-button");
-const nextButton = document.getElementById("next-button");
-const finishButton = document.getElementById("finish-button");
+const userPhoto =
+  document.getElementById("user-photo");
 
-const scoreNumber = document.getElementById("score-number");
-const scorePercent = document.getElementById("score-percent");
-const resultMessage = document.getElementById("result-message");
-const reviewContainer = document.getElementById("review-container");
-const retryButton = document.getElementById("retry-button");
-const continueButton = document.getElementById("continue-button");
+const themeGrid =
+  document.getElementById("theme-grid");
 
-function clone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
+const levelPanel =
+  document.getElementById("level-panel");
+
+const quizPanel =
+  document.getElementById("quiz-panel");
+
+const resultsPanel =
+  document.getElementById("results-panel");
+
+const emptyState =
+  document.getElementById("empty-state");
+
+const themeTitle =
+  document.getElementById("theme-title");
+
+const themeDescription =
+  document.getElementById("theme-description");
+
+const levelsContainer =
+  document.getElementById("levels-container");
+
+const quizTitle =
+  document.getElementById("quiz-title");
+
+const quizBadge =
+  document.getElementById("quiz-badge");
+
+const questionCounter =
+  document.getElementById("question-counter");
+
+const scoreLive =
+  document.getElementById("score-live");
+
+const progressFill =
+  document.getElementById("progress-fill");
+
+const questionContainer =
+  document.getElementById("question-container");
+
+const feedbackContainer =
+  document.getElementById("feedback-container");
+
+const message =
+  document.getElementById("message");
+
+const previousButton =
+  document.getElementById("previous-button");
+
+const nextButton =
+  document.getElementById("next-button");
+
+const finishButton =
+  document.getElementById("finish-button");
+
+const scoreNumber =
+  document.getElementById("score-number");
+
+const scorePercent =
+  document.getElementById("score-percent");
+
+const resultMessage =
+  document.getElementById("result-message");
+
+const reviewContainer =
+  document.getElementById("review-container");
+
+const retryButton =
+  document.getElementById("retry-button");
+
+const continueButton =
+  document.getElementById("continue-button");
 
 function shuffle(array) {
   const copied = [...array];
 
-  for (let i = copied.length - 1; i > 0; i--) {
-    const randomIndex = Math.floor(Math.random() * (i + 1));
+  for (let i = copied.length - 1; i > 0; i -= 1) {
+    const randomIndex = Math.floor(
+      Math.random() * (i + 1)
+    );
 
     [copied[i], copied[randomIndex]] = [
       copied[randomIndex],
@@ -87,11 +139,13 @@ function shuffle(array) {
 }
 
 function levelLabel(level) {
-  return {
+  const labels = {
     debutant: "Débutant",
     intermediaire: "Intermédiaire",
     avance: "Avancé"
-  }[level];
+  };
+
+  return labels[level] || level;
 }
 
 function levelKey(theme, level) {
@@ -104,18 +158,24 @@ function isThemeUnlocked(theme) {
 
 function isLevelUnlocked(theme, level) {
   return Boolean(
-    userProgress.unlockedLevels[theme]?.includes(level)
+    userProgress.unlockedLevels?.[theme]?.includes(level)
   );
 }
 
 function isCompleted(theme, level) {
   return Boolean(
-    userProgress.completedLevels[levelKey(theme, level)]
+    userProgress.completedLevels[
+      levelKey(theme, level)
+    ]
   );
 }
 
-function bestScore(theme, level) {
-  return userProgress.bestScores[levelKey(theme, level)] || 0;
+function getBestScore(theme, level) {
+  return Number(
+    userProgress.bestScores[
+      levelKey(theme, level)
+    ] || 0
+  );
 }
 
 function renderUser(user) {
@@ -130,10 +190,15 @@ function renderUser(user) {
   logoutButton.hidden = false;
   userArea.hidden = false;
 
-  userName.textContent = user.displayName || "Utilisateur";
+  userName.textContent =
+    user.displayName || "Utilisateur";
+
   userPhoto.src =
     user.photoURL ||
     "https://via.placeholder.com/44";
+
+  userPhoto.alt =
+    `Photo de ${user.displayName || "l'utilisateur"}`;
 }
 
 function renderThemes() {
@@ -147,11 +212,13 @@ function renderThemes() {
       isCompleted(theme, level)
     );
 
-    const button = document.createElement("button");
+    const button =
+      document.createElement("button");
 
     button.type = "button";
     button.className = "theme-card";
-    button.disabled = !currentUser || !unlocked;
+    button.disabled =
+      !currentUser || !unlocked;
 
     if (completed) {
       button.classList.add("completed");
@@ -159,40 +226,44 @@ function renderThemes() {
 
     const icons = ["📘", "🔗", "📊"];
 
+    const statusText = !currentUser
+      ? "Connecte-toi"
+      : completed
+        ? "Thème terminé ✓"
+        : unlocked
+          ? "Continuer →"
+          : "Verrouillé";
+
+    const statusLabel = completed
+      ? "✓ Terminé"
+      : unlocked
+        ? "Disponible"
+        : "🔒 Verrouillé";
+
+    const statusClass = completed
+      ? "pill-success"
+      : unlocked
+        ? ""
+        : "pill-lock";
+
     button.innerHTML = `
-      <div class="theme-icon">${icons[index]}</div>
+      <div class="theme-icon">
+        ${icons[index] || "📚"}
+      </div>
 
-      <h3>${index + 1}. ${data.title}</h3>
+      <h3>
+        ${index + 1}. ${data.title}
+      </h3>
 
-      <p>${data.description}</p>
+      <p>
+        ${data.description}
+      </p>
 
       <div class="theme-footer">
-        <span>
-          ${
-            !currentUser
-              ? "Connecte-toi"
-              : completed
-                ? "Thème terminé ✓"
-                : unlocked
-                  ? "Continuer →"
-                  : "Verrouillé"
-          }
-        </span>
+        <span>${statusText}</span>
 
-        <span class="pill ${
-          completed
-            ? "pill-success"
-            : unlocked
-              ? ""
-              : "pill-lock"
-        }">
-          ${
-            completed
-              ? "✓ Terminé"
-              : unlocked
-                ? "Disponible"
-                : "🔒 Verrouillé"
-          }
+        <span class="pill ${statusClass}">
+          ${statusLabel}
         </span>
       </div>
     `;
@@ -206,7 +277,10 @@ function renderThemes() {
 }
 
 function openTheme(theme) {
-  if (!currentUser || !isThemeUnlocked(theme)) {
+  if (
+    !currentUser ||
+    !isThemeUnlocked(theme)
+  ) {
     return;
   }
 
@@ -218,25 +292,36 @@ function openTheme(theme) {
   quizPanel.hidden = true;
   resultsPanel.hidden = true;
 
-  themeTitle.textContent = quizData[theme].title;
-  themeDescription.textContent = quizData[theme].description;
+  themeTitle.textContent =
+    quizData[theme].title;
+
+  themeDescription.textContent =
+    quizData[theme].description;
 
   renderLevels();
 
   document
     .getElementById("quiz")
-    .scrollIntoView({ behavior: "smooth" });
+    .scrollIntoView({
+      behavior: "smooth"
+    });
 }
 
 function renderLevels() {
   levelsContainer.replaceChildren();
 
   levelOrder.forEach(level => {
-    const unlocked = isLevelUnlocked(currentTheme, level);
-    const completed = isCompleted(currentTheme, level);
-    const score = bestScore(currentTheme, level);
+    const unlocked =
+      isLevelUnlocked(currentTheme, level);
 
-    const button = document.createElement("button");
+    const completed =
+      isCompleted(currentTheme, level);
+
+    const score =
+      getBestScore(currentTheme, level);
+
+    const button =
+      document.createElement("button");
 
     button.type = "button";
     button.className = "level-card";
@@ -246,28 +331,32 @@ function renderLevels() {
       button.classList.add("completed");
     }
 
+    let description;
+
+    if (unlocked) {
+      description =
+        "10 questions pour valider ce niveau.";
+    } else {
+      description =
+        "Termine le niveau précédent.";
+    }
+
+    let scoreText;
+
+    if (completed) {
+      scoreText = `✓ Réussi : ${score}/10`;
+    } else if (unlocked && score > 0) {
+      scoreText = `Meilleur score : ${score}/10`;
+    } else if (unlocked) {
+      scoreText = "Disponible";
+    } else {
+      scoreText = "🔒 Verrouillé";
+    }
+
     button.innerHTML = `
       <strong>${levelLabel(level)}</strong>
-
-      <span>
-        ${
-          unlocked
-            ? "10 questions pour valider ce niveau."
-            : "Termine le niveau précédent."
-        }
-      </span>
-
-      <small>
-        ${
-          completed
-            ? `✓ Réussi : ${score}/10`
-            : unlocked && score > 0
-              ? `Meilleur score : ${score}/10`
-              : unlocked
-                ? "Disponible"
-                : "🔒 Verrouillé"
-        }
-      </small>
+      <span>${description}</span>
+      <small>${scoreText}</small>
     `;
 
     button.addEventListener("click", () => {
@@ -279,50 +368,84 @@ function renderLevels() {
 }
 
 function prepareQuestions(theme, level) {
-  return quizData[theme].levels[level].map(question => ({
+  const questions =
+    quizData[theme]?.levels?.[level] || [];
+
+  return questions.map(question => ({
     ...question,
     options: shuffle(question.options)
   }));
 }
 
 function startQuiz(level) {
-  if (!isLevelUnlocked(currentTheme, level)) {
+  if (
+    !currentTheme ||
+    !isLevelUnlocked(currentTheme, level)
+  ) {
     return;
   }
 
   currentLevel = level;
+
   currentQuestions = prepareQuestions(
     currentTheme,
     currentLevel
   );
 
+  if (currentQuestions.length === 0) {
+    alert("Aucune question disponible pour ce niveau.");
+    return;
+  }
+
   currentIndex = 0;
-  answers = Array(currentQuestions.length).fill(null);
-  validated = Array(currentQuestions.length).fill(false);
+
+  answers = Array(
+    currentQuestions.length
+  ).fill(null);
+
+  validated = Array(
+    currentQuestions.length
+  ).fill(false);
 
   levelPanel.hidden = true;
   quizPanel.hidden = false;
   resultsPanel.hidden = true;
 
-  quizTitle.textContent = quizData[currentTheme].title;
-  quizBadge.textContent = `Niveau ${levelLabel(level)}`;
+  quizTitle.textContent =
+    quizData[currentTheme].title;
+
+  quizBadge.textContent =
+    `Niveau ${levelLabel(level)}`;
 
   renderQuestion();
 }
 
 function getCurrentScore() {
-  return answers.reduce((score, answer, index) => {
-    return score + (
-      answer === currentQuestions[index].correct
-        ? 1
-        : 0
-    );
-  }, 0);
+  return answers.reduce(
+    (score, answer, index) => {
+      const question =
+        currentQuestions[index];
+
+      return score + (
+        answer === question.correct
+          ? 1
+          : 0
+      );
+    },
+    0
+  );
 }
 
 function renderQuestion() {
-  const question = currentQuestions[currentIndex];
-  const total = currentQuestions.length;
+  const question =
+    currentQuestions[currentIndex];
+
+  const total =
+    currentQuestions.length;
+
+  if (!question || total === 0) {
+    return;
+  }
 
   questionCounter.textContent =
     `Question ${currentIndex + 1} sur ${total}`;
@@ -337,61 +460,81 @@ function renderQuestion() {
   feedbackContainer.replaceChildren();
   message.textContent = "";
 
-  const title = document.createElement("h3");
-  title.textContent = question.text;
+  const title =
+    document.createElement("h3");
 
-  const options = document.createElement("div");
+  title.textContent =
+    question.text;
+
+  const options =
+    document.createElement("div");
+
   options.className = "options";
 
-  question.options.forEach((option, index) => {
-    const label = document.createElement("label");
-    label.className = "option";
+  question.options.forEach(
+    (option, index) => {
+      const label =
+        document.createElement("label");
 
-    const input = document.createElement("input");
+      label.className = "option";
 
-    input.type = "radio";
-    input.name = "answer";
-    input.value = option;
-    input.checked = answers[currentIndex] === option;
-    input.disabled = validated[currentIndex];
+      const input =
+        document.createElement("input");
 
-    if (
-      answers[currentIndex] === option &&
-      !validated[currentIndex]
-    ) {
-      label.classList.add("selected");
+      input.type = "radio";
+      input.name = "answer";
+      input.value = option;
+      input.checked =
+        answers[currentIndex] === option;
+      input.disabled =
+        validated[currentIndex];
+
+      if (
+        answers[currentIndex] === option &&
+        !validated[currentIndex]
+      ) {
+        label.classList.add("selected");
+      }
+
+      if (
+        validated[currentIndex] &&
+        option === question.correct
+      ) {
+        label.classList.add("correct");
+      }
+
+      if (
+        validated[currentIndex] &&
+        answers[currentIndex] === option &&
+        option !== question.correct
+      ) {
+        label.classList.add("incorrect");
+      }
+
+      input.addEventListener(
+        "change",
+        () => {
+          answers[currentIndex] = option;
+          renderQuestion();
+        }
+      );
+
+      const letter =
+        document.createElement("span");
+
+      letter.className = "option-letter";
+      letter.textContent =
+        String.fromCharCode(65 + index);
+
+      const text =
+        document.createElement("span");
+
+      text.textContent = option;
+
+      label.append(input, letter, text);
+      options.appendChild(label);
     }
-
-    if (
-      validated[currentIndex] &&
-      option === question.correct
-    ) {
-      label.classList.add("correct");
-    }
-
-    if (
-      validated[currentIndex] &&
-      answers[currentIndex] === option &&
-      option !== question.correct
-    ) {
-      label.classList.add("incorrect");
-    }
-
-    input.addEventListener("change", () => {
-      answers[currentIndex] = option;
-      renderQuestion();
-    });
-
-    const letter = document.createElement("span");
-    letter.className = "option-letter";
-    letter.textContent = String.fromCharCode(65 + index);
-
-    const text = document.createElement("span");
-    text.textContent = option;
-
-    label.append(input, letter, text);
-    options.appendChild(label);
-  });
+  );
 
   questionContainer.append(title, options);
 
@@ -399,24 +542,38 @@ function renderQuestion() {
     const correct =
       answers[currentIndex] === question.correct;
 
-    feedbackContainer.innerHTML = `
-      <div class="feedback ${
-        correct ? "correct" : "incorrect"
-      }">
-        <strong>
-          ${
-            correct
-              ? "Bonne réponse !"
-              : `Réponse correcte : ${question.correct}`
-          }
-        </strong>
+    const feedback =
+      document.createElement("div");
 
-        <span>${question.explanation}</span>
-      </div>
-    `;
+    feedback.className =
+      `feedback ${
+        correct ? "correct" : "incorrect"
+      }`;
+
+    const feedbackTitle =
+      document.createElement("strong");
+
+    feedbackTitle.textContent =
+      correct
+        ? "Bonne réponse !"
+        : `Réponse correcte : ${question.correct}`;
+
+    const feedbackText =
+      document.createElement("span");
+
+    feedbackText.textContent =
+      question.explanation;
+
+    feedback.append(
+      feedbackTitle,
+      feedbackText
+    );
+
+    feedbackContainer.appendChild(feedback);
   }
 
-  previousButton.disabled = currentIndex === 0;
+  previousButton.disabled =
+    currentIndex === 0;
 
   nextButton.hidden =
     currentIndex === total - 1;
@@ -450,7 +607,10 @@ function nextQuestion() {
     return;
   }
 
-  if (currentIndex < currentQuestions.length - 1) {
+  if (
+    currentIndex <
+    currentQuestions.length - 1
+  ) {
     currentIndex += 1;
     renderQuestion();
   }
@@ -471,9 +631,8 @@ async function finishQuiz() {
     return;
   }
 
-  const missingIndex = answers.findIndex(
-    answer => answer === null
-  );
+  const missingIndex =
+    answers.findIndex(answer => answer === null);
 
   if (missingIndex !== -1) {
     currentIndex = missingIndex;
@@ -487,15 +646,21 @@ async function finishQuiz() {
 
   const score = getCurrentScore();
 
-  try {
-    const result = await saveQuizResult({
-      theme: currentTheme,
-      level: currentLevel,
-      score,
-      totalQuestions: currentQuestions.length
-    });
+  finishButton.disabled = true;
+  finishButton.textContent =
+    "Enregistrement...";
 
-    userProgress = normalizeProgress(result.progress);
+  try {
+    const result =
+      await saveQuizResult({
+        theme: currentTheme,
+        level: currentLevel,
+        score,
+        totalQuestions: currentQuestions.length
+      });
+
+    userProgress =
+      normalizeProgress(result.progress);
 
     quizPanel.hidden = true;
     resultsPanel.hidden = false;
@@ -523,55 +688,107 @@ async function finishQuiz() {
     configureResultButtons(result);
     renderThemes();
   } catch (error) {
-    console.error(error);
+    console.error("Erreur Firestore :", error);
 
     message.textContent =
-      "Erreur lors de l'enregistrement du résultat.";
+      "Erreur lors de l'enregistrement. Vérifie Firestore.";
+
+    alert(
+      `Erreur Firestore : ${error.message}`
+    );
+  } finally {
+    finishButton.disabled = false;
+    finishButton.textContent =
+      "Voir mon résultat";
   }
 }
 
 function renderReview() {
   reviewContainer.replaceChildren();
 
-  currentQuestions.forEach((question, index) => {
-    const good =
-      answers[index] === question.correct;
+  currentQuestions.forEach(
+    (question, index) => {
+      const good =
+        answers[index] === question.correct;
 
-    const article = document.createElement("article");
-    article.className = "review-item";
+      const article =
+        document.createElement("article");
 
-    article.innerHTML = `
-      <h3>${index + 1}. ${question.text}</h3>
+      article.className = "review-item";
 
-      <span class="review-status ${
-        good ? "good" : "bad"
-      }">
-        ${good ? "Bonne réponse" : "À revoir"}
-      </span>
+      const title =
+        document.createElement("h3");
 
-      <p>
-        <strong>Ta réponse :</strong>
-        ${answers[index]}
-      </p>
+      title.textContent =
+        `${index + 1}. ${question.text}`;
 
-      <p>
-        <strong>Bonne réponse :</strong>
-        ${question.correct}
-      </p>
+      const status =
+        document.createElement("span");
 
-      <div class="explanation">
-        <strong>Explication :</strong>
-        ${question.explanation}
-      </div>
-    `;
+      status.className =
+        `review-status ${
+          good ? "good" : "bad"
+        }`;
 
-    reviewContainer.appendChild(article);
-  });
+      status.textContent =
+        good
+          ? "Bonne réponse"
+          : "À revoir";
+
+      const answer =
+        document.createElement("p");
+
+      answer.innerHTML =
+        "<strong>Ta réponse :</strong> ";
+
+      answer.append(
+        document.createTextNode(
+          answers[index] || "Aucune réponse"
+        )
+      );
+
+      const correct =
+        document.createElement("p");
+
+      correct.innerHTML =
+        "<strong>Bonne réponse :</strong> ";
+
+      correct.append(
+        document.createTextNode(question.correct)
+      );
+
+      const explanation =
+        document.createElement("div");
+
+      explanation.className =
+        "explanation";
+
+      explanation.innerHTML =
+        "<strong>Explication :</strong> ";
+
+      explanation.append(
+        document.createTextNode(
+          question.explanation
+        )
+      );
+
+      article.append(
+        title,
+        status,
+        answer,
+        correct,
+        explanation
+      );
+
+      reviewContainer.appendChild(article);
+    }
+  );
 }
 
 function configureResultButtons(result) {
   retryButton.hidden = false;
-  continueButton.hidden = !result.passed;
+  continueButton.hidden =
+    !result.passed;
 
   retryButton.textContent =
     result.perfect
@@ -610,18 +827,22 @@ function continueProgression() {
     return;
   }
 
-  if (userProgress.currentTheme) {
-    openTheme(userProgress.currentTheme);
+  const theme =
+    userProgress.currentTheme;
 
-    if (
-      userProgress.currentLevel &&
-      isLevelUnlocked(
-        userProgress.currentTheme,
-        userProgress.currentLevel
-      )
-    ) {
-      startQuiz(userProgress.currentLevel);
-    }
+  const level =
+    userProgress.currentLevel;
+
+  if (
+    theme &&
+    level &&
+    isThemeUnlocked(theme) &&
+    isLevelUnlocked(theme, level)
+  ) {
+    openTheme(theme);
+    startQuiz(level);
+  } else {
+    showHome();
   }
 }
 
@@ -637,23 +858,38 @@ function showHome() {
   renderThemes();
 }
 
-loginButton.addEventListener("click", async () => {
-  try {
-    await signInWithPopup(auth, googleProvider);
-  } catch (error) {
-    console.error(error);
-    alert(`Connexion impossible : ${error.message}`);
-  }
-});
+loginButton.addEventListener(
+  "click",
+  async () => {
+    try {
+      await signInWithPopup(
+        auth,
+        googleProvider
+      );
+    } catch (error) {
+      console.error(error);
 
-logoutButton.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error(error);
-    alert("Erreur pendant la déconnexion.");
+      alert(
+        `Connexion impossible : ${error.message}`
+      );
+    }
   }
-});
+);
+
+logoutButton.addEventListener(
+  "click",
+  async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Erreur pendant la déconnexion."
+      );
+    }
+  }
+);
 
 previousButton.addEventListener(
   "click",
@@ -675,7 +911,9 @@ finishButton.addEventListener(
 
 retryButton.addEventListener(
   "click",
-  () => startQuiz(currentLevel)
+  () => {
+    startQuiz(currentLevel);
+  }
 );
 
 continueButton.addEventListener(
@@ -685,46 +923,54 @@ continueButton.addEventListener(
 
 document
   .getElementById("back-to-themes")
-  .addEventListener("click", showHome);
+  .addEventListener(
+    "click",
+    showHome
+  );
 
-onAuthStateChanged(auth, async user => {
-  currentUser = user;
-  renderUser(user);
+onAuthStateChanged(
+  auth,
+  async user => {
+    currentUser = user;
+    renderUser(user);
 
-  if (!user) {
-    userProgress = normalizeProgress(defaultProgress);
-    showHome();
-    return;
-  }
+    if (!user) {
+      userProgress =
+        normalizeProgress(defaultProgress);
 
-  try {
-    userProgress =
-      await createOrUpdateUserProfile(user);
-
-    renderThemes();
-
-    const savedTheme =
-      userProgress.currentTheme;
-
-    const savedLevel =
-      userProgress.currentLevel;
-
-    if (
-      savedTheme &&
-      savedLevel &&
-      isThemeUnlocked(savedTheme) &&
-      isLevelUnlocked(savedTheme, savedLevel)
-    ) {
-      openTheme(savedTheme);
+      showHome();
+      return;
     }
-  } catch (error) {
-    console.error(error);
 
-    alert(
-      "Impossible de charger ta progression. " +
-      "Vérifie Firebase et les règles Firestore."
-    );
+    try {
+      userProgress =
+        await createOrUpdateUserProfile(user);
+
+      renderThemes();
+
+      const savedTheme =
+        userProgress.currentTheme;
+
+      const savedLevel =
+        userProgress.currentLevel;
+
+      if (
+        savedTheme &&
+        savedLevel &&
+        isThemeUnlocked(savedTheme) &&
+        isLevelUnlocked(savedTheme, savedLevel)
+      ) {
+        openTheme(savedTheme);
+      }
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Impossible de charger ta progression. " +
+        "Vérifie Firebase et Firestore."
+      );
+    }
   }
-});
+);
 
 showHome();
