@@ -3,27 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SQL Master Quiz avec connexion Google et progression enregistrée.">
+
+  <meta
+    name="description"
+    content="SQL Master Quiz avec connexion Google et progression enregistrée."
+  >
+
   <title>SQL Master Quiz</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-  <header>
-    <nav class="container">
-      <a class="brand" href="#">SQL <span>MASTER</span></a>
+  <header class="site-header">
+    <nav class="container navbar">
+      <a href="./index.html" class="brand">
+        SQL <span>MASTER</span>
+      </a>
 
-      <div class="account">
-        <button id="google-login-button" class="button google-button" type="button">
+      <div class="account-actions">
+        <button
+          id="google-login-button"
+          class="button google-button"
+          type="button"
+        >
           Continuer avec Google
         </button>
 
         <div id="user-area" class="user-area" hidden>
-          <img id="user-photo" src="" alt="Photo de profil">
+          <img
+            id="user-photo"
+            src="https://via.placeholder.com/44"
+            alt="Photo de profil"
+          >
+
           <span id="user-name"></span>
         </div>
 
-        <button id="logout-button" class="button button-outline" type="button" hidden>
+        <button
+          id="logout-button"
+          class="button button-outline"
+          type="button"
+          hidden
+        >
           Déconnexion
         </button>
       </div>
@@ -32,11 +54,18 @@
 
   <section class="hero">
     <div class="container">
-      <span class="eyebrow">Apprentissage SQL guidé</span>
-      <h1>Progresse du plus simple au plus <strong>avancé</strong>.</h1>
+      <span class="eyebrow">
+        Apprentissage SQL guidé
+      </span>
+
+      <h1>
+        Progresse du plus simple au plus
+        <strong>avancé</strong>.
+      </h1>
+
       <p>
-        Connecte-toi avec Google. Ton nom, tes scores, ton thème actuel,
-        ton niveau et ta progression sont conservés dans ton compte.
+        Connecte-toi avec Google pour enregistrer ton nom,
+        tes scores et ton parcours.
       </p>
     </div>
   </section>
@@ -45,7 +74,11 @@
     <section id="themes">
       <div class="section-heading">
         <h2>Ton parcours SQL</h2>
-        <p>Les thèmes se déverrouillent lorsque les niveaux précédents sont réussis.</p>
+
+        <p>
+          Les thèmes se déverrouillent lorsque les niveaux
+          précédents sont réussis.
+        </p>
       </div>
 
       <div id="theme-grid" class="theme-grid"></div>
@@ -55,17 +88,29 @@
       <div class="quiz-shell">
         <div id="empty-state" class="empty-state">
           <div class="empty-icon">🎯</div>
+
           <h3>Connecte-toi pour commencer</h3>
-          <p>Ta progression sera enregistrée dans ton compte Google.</p>
+
+          <p>
+            Ta progression sera enregistrée dans ton compte Google.
+          </p>
         </div>
 
         <div id="level-panel" hidden>
           <h2 id="theme-title"></h2>
+
           <p id="theme-description" class="intro"></p>
 
-          <div id="levels-container" class="level-grid"></div>
+          <div
+            id="levels-container"
+            class="level-grid"
+          ></div>
 
-          <button id="back-to-themes" class="button button-outline" type="button">
+          <button
+            id="back-to-themes"
+            class="button button-outline"
+            type="button"
+          >
             ← Retour aux thèmes
           </button>
         </div>
@@ -76,7 +121,11 @@
               <h2 id="quiz-title"></h2>
               <p>Choisis une réponse puis valide.</p>
             </div>
-            <span id="quiz-badge" class="quiz-badge"></span>
+
+            <span
+              id="quiz-badge"
+              class="quiz-badge"
+            ></span>
           </div>
 
           <div class="quiz-meta">
@@ -85,27 +134,52 @@
           </div>
 
           <div class="progress-track">
-            <div id="progress-fill" class="progress-fill"></div>
+            <div
+              id="progress-fill"
+              class="progress-fill"
+            ></div>
           </div>
 
           <div class="question-card">
-            <span class="question-label">Question</span>
+            <span class="question-label">
+              Question
+            </span>
+
             <div id="question-container"></div>
+
             <div id="feedback-container"></div>
           </div>
 
-          <p id="message" class="message"></p>
+          <p
+            id="message"
+            class="message"
+            role="status"
+            aria-live="polite"
+          ></p>
 
           <div class="navigation">
-            <button id="previous-button" class="button button-secondary" type="button">
+            <button
+              id="previous-button"
+              class="button button-secondary"
+              type="button"
+            >
               ← Précédent
             </button>
 
-            <button id="next-button" class="button" type="button">
+            <button
+              id="next-button"
+              class="button"
+              type="button"
+            >
               Valider puis continuer →
             </button>
 
-            <button id="finish-button" class="button button-success" type="button" hidden>
+            <button
+              id="finish-button"
+              class="button button-success"
+              type="button"
+              hidden
+            >
               Voir mon résultat
             </button>
           </div>
@@ -113,8 +187,12 @@
 
         <div id="results-panel" hidden>
           <div class="result-top">
-            <span class="eyebrow">Quiz terminé</span>
+            <span class="eyebrow">
+              Quiz terminé
+            </span>
+
             <h2>Ton résultat</h2>
+
             <p id="result-message"></p>
 
             <div class="score-circle">
@@ -126,14 +204,24 @@
           </div>
 
           <h3>Correction détaillée</h3>
+
           <div id="review-container"></div>
 
           <div class="result-actions">
-            <button id="retry-button" class="button" type="button">
+            <button
+              id="retry-button"
+              class="button"
+              type="button"
+            >
               Refaire ce niveau
             </button>
 
-            <button id="continue-button" class="button button-success" type="button" hidden>
+            <button
+              id="continue-button"
+              class="button button-success"
+              type="button"
+              hidden
+            >
               Continuer →
             </button>
           </div>
@@ -142,10 +230,15 @@
     </section>
   </main>
 
-  <footer>
-    <p>SQL Master Quiz — Connexion Google et progression personnalisée.</p>
+  <footer class="site-footer">
+    <p>
+      SQL Master Quiz — Connexion Google et progression personnalisée.
+    </p>
   </footer>
 
-  <script type="module" src="app.js"></script>
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
 </body>
 </html>
