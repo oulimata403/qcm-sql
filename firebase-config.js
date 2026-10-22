@@ -34,14 +34,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Firebase Authentication
 const auth = getAuth(app);
-
-// Fournisseur de connexion Google
-const googleProvider = new GoogleAuthProvider();
-
-// Firestore
 const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 export {
   app,
