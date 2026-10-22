@@ -31,107 +31,103 @@ let currentIndex = 0;
 let answers = [];
 let validated = [];
 
-const loginButton =
-  document.getElementById("google-login-button");
+function getElement(id) {
+  const element = document.getElementById(id);
 
-const logoutButton =
-  document.getElementById("logout-button");
+  if (!element) {
+    console.error(`Élément HTML introuvable : #${id}`);
+  }
 
-const userArea =
-  document.getElementById("user-area");
+  return element;
+}
 
-const userName =
-  document.getElementById("user-name");
+const loginButton = getElement("google-login-button");
+const logoutButton = getElement("logout-button");
+const userArea = getElement("user-area");
+const userName = getElement("user-name");
+const userPhoto = getElement("user-photo");
 
-const userPhoto =
-  document.getElementById("user-photo");
+const themeGrid = getElement("theme-grid");
+const levelPanel = getElement("level-panel");
+const quizPanel = getElement("quiz-panel");
+const resultsPanel = getElement("results-panel");
+const emptyState = getElement("empty-state");
 
-const themeGrid =
-  document.getElementById("theme-grid");
+const themeTitle = getElement("theme-title");
+const themeDescription = getElement("theme-description");
+const levelsContainer = getElement("levels-container");
 
-const levelPanel =
-  document.getElementById("level-panel");
+const quizTitle = getElement("quiz-title");
+const quizBadge = getElement("quiz-badge");
+const questionCounter = getElement("question-counter");
+const scoreLive = getElement("score-live");
+const progressFill = getElement("progress-fill");
+const questionContainer = getElement("question-container");
+const feedbackContainer = getElement("feedback-container");
+const message = getElement("message");
 
-const quizPanel =
-  document.getElementById("quiz-panel");
+const previousButton = getElement("previous-button");
+const nextButton = getElement("next-button");
+const finishButton = getElement("finish-button");
 
-const resultsPanel =
-  document.getElementById("results-panel");
+const scoreNumber = getElement("score-number");
+const scorePercent = getElement("score-percent");
+const resultMessage = getElement("result-message");
+const reviewContainer = getElement("review-container");
+const retryButton = getElement("retry-button");
+const continueButton = getElement("continue-button");
 
-const emptyState =
-  document.getElementById("empty-state");
+function elementsAreReady() {
+  const requiredElements = [
+    loginButton,
+    logoutButton,
+    userArea,
+    userName,
+    userPhoto,
+    themeGrid,
+    levelPanel,
+    quizPanel,
+    resultsPanel,
+    emptyState,
+    themeTitle,
+    themeDescription,
+    levelsContainer,
+    quizTitle,
+    quizBadge,
+    questionCounter,
+    scoreLive,
+    progressFill,
+    questionContainer,
+    feedbackContainer,
+    message,
+    previousButton,
+    nextButton,
+    finishButton,
+    scoreNumber,
+    scorePercent,
+    resultMessage,
+    reviewContainer,
+    retryButton,
+    continueButton
+  ];
 
-const themeTitle =
-  document.getElementById("theme-title");
-
-const themeDescription =
-  document.getElementById("theme-description");
-
-const levelsContainer =
-  document.getElementById("levels-container");
-
-const quizTitle =
-  document.getElementById("quiz-title");
-
-const quizBadge =
-  document.getElementById("quiz-badge");
-
-const questionCounter =
-  document.getElementById("question-counter");
-
-const scoreLive =
-  document.getElementById("score-live");
-
-const progressFill =
-  document.getElementById("progress-fill");
-
-const questionContainer =
-  document.getElementById("question-container");
-
-const feedbackContainer =
-  document.getElementById("feedback-container");
-
-const message =
-  document.getElementById("message");
-
-const previousButton =
-  document.getElementById("previous-button");
-
-const nextButton =
-  document.getElementById("next-button");
-
-const finishButton =
-  document.getElementById("finish-button");
-
-const scoreNumber =
-  document.getElementById("score-number");
-
-const scorePercent =
-  document.getElementById("score-percent");
-
-const resultMessage =
-  document.getElementById("result-message");
-
-const reviewContainer =
-  document.getElementById("review-container");
-
-const retryButton =
-  document.getElementById("retry-button");
-
-const continueButton =
-  document.getElementById("continue-button");
+  return requiredElements.every(Boolean);
+}
 
 function shuffle(array) {
   const copied = [...array];
 
-  for (let i = copied.length - 1; i > 0; i -= 1) {
+  for (let index = copied.length - 1; index > 0; index -= 1) {
     const randomIndex = Math.floor(
-      Math.random() * (i + 1)
+      Math.random() * (index + 1)
     );
 
-    [copied[i], copied[randomIndex]] = [
+    [
+      copied[index],
+      copied[randomIndex]
+    ] = [
       copied[randomIndex],
-      copied[i]
+      copied[index]
     ];
   }
 
@@ -153,7 +149,9 @@ function levelKey(theme, level) {
 }
 
 function isThemeUnlocked(theme) {
-  return userProgress.unlockedThemes.includes(theme);
+  return Boolean(
+    userProgress.unlockedThemes?.includes(theme)
+  );
 }
 
 function isLevelUnlocked(theme, level) {
@@ -164,7 +162,7 @@ function isLevelUnlocked(theme, level) {
 
 function isCompleted(theme, level) {
   return Boolean(
-    userProgress.completedLevels[
+    userProgress.completedLevels?.[
       levelKey(theme, level)
     ]
   );
@@ -172,7 +170,7 @@ function isCompleted(theme, level) {
 
 function getBestScore(theme, level) {
   return Number(
-    userProgress.bestScores[
+    userProgress.bestScores?.[
       levelKey(theme, level)
     ] || 0
   );
@@ -206,11 +204,18 @@ function renderThemes() {
 
   themeOrder.forEach((theme, index) => {
     const data = quizData[theme];
-    const unlocked = isThemeUnlocked(theme);
 
-    const completed = levelOrder.every(level =>
-      isCompleted(theme, level)
-    );
+    if (!data) {
+      return;
+    }
+
+    const unlocked =
+      isThemeUnlocked(theme);
+
+    const completed =
+      levelOrder.every(level =>
+        isCompleted(theme, level)
+      );
 
     const button =
       document.createElement("button");
@@ -224,27 +229,34 @@ function renderThemes() {
       button.classList.add("completed");
     }
 
-    const icons = ["📘", "🔗", "📊"];
+    const icons = [
+      "📘",
+      "🔗",
+      "📊"
+    ];
 
-    const statusText = !currentUser
-      ? "Connecte-toi"
-      : completed
-        ? "Thème terminé ✓"
+    const statusText =
+      !currentUser
+        ? "Connecte-toi"
+        : completed
+          ? "Thème terminé ✓"
+          : unlocked
+            ? "Continuer →"
+            : "Verrouillé";
+
+    const statusLabel =
+      completed
+        ? "✓ Terminé"
         : unlocked
-          ? "Continuer →"
-          : "Verrouillé";
+          ? "Disponible"
+          : "🔒 Verrouillé";
 
-    const statusLabel = completed
-      ? "✓ Terminé"
-      : unlocked
-        ? "Disponible"
-        : "🔒 Verrouillé";
-
-    const statusClass = completed
-      ? "pill-success"
-      : unlocked
-        ? ""
-        : "pill-lock";
+    const statusClass =
+      completed
+        ? "pill-success"
+        : unlocked
+          ? ""
+          : "pill-lock";
 
     button.innerHTML = `
       <div class="theme-icon">
@@ -300,15 +312,22 @@ function openTheme(theme) {
 
   renderLevels();
 
-  document
-    .getElementById("quiz")
-    .scrollIntoView({
+  const quizSection =
+    document.getElementById("quiz");
+
+  if (quizSection) {
+    quizSection.scrollIntoView({
       behavior: "smooth"
     });
+  }
 }
 
 function renderLevels() {
   levelsContainer.replaceChildren();
+
+  if (!currentTheme) {
+    return;
+  }
 
   levelOrder.forEach(level => {
     const unlocked =
@@ -331,15 +350,10 @@ function renderLevels() {
       button.classList.add("completed");
     }
 
-    let description;
-
-    if (unlocked) {
-      description =
-        "10 questions pour valider ce niveau.";
-    } else {
-      description =
-        "Termine le niveau précédent.";
-    }
+    const description =
+      unlocked
+        ? "10 questions pour valider ce niveau."
+        : "Termine le niveau précédent.";
 
     let scoreText;
 
@@ -369,11 +383,11 @@ function renderLevels() {
 
 function prepareQuestions(theme, level) {
   const questions =
-    quizData[theme]?.levels?.[level] || [];
+    quizData?.[theme]?.levels?.[level] || [];
 
   return questions.map(question => ({
     ...question,
-    options: shuffle(question.options)
+    options: shuffle(question.options || [])
   }));
 }
 
@@ -387,13 +401,16 @@ function startQuiz(level) {
 
   currentLevel = level;
 
-  currentQuestions = prepareQuestions(
-    currentTheme,
-    currentLevel
-  );
+  currentQuestions =
+    prepareQuestions(
+      currentTheme,
+      currentLevel
+    );
 
   if (currentQuestions.length === 0) {
-    alert("Aucune question disponible pour ce niveau.");
+    alert(
+      "Aucune question disponible pour ce niveau."
+    );
     return;
   }
 
@@ -522,7 +539,9 @@ function renderQuestion() {
       const letter =
         document.createElement("span");
 
-      letter.className = "option-letter";
+      letter.className =
+        "option-letter";
+
       letter.textContent =
         String.fromCharCode(65 + index);
 
@@ -531,12 +550,20 @@ function renderQuestion() {
 
       text.textContent = option;
 
-      label.append(input, letter, text);
+      label.append(
+        input,
+        letter,
+        text
+      );
+
       options.appendChild(label);
     }
   );
 
-  questionContainer.append(title, options);
+  questionContainer.append(
+    title,
+    options
+  );
 
   if (validated[currentIndex]) {
     const correct =
@@ -547,7 +574,9 @@ function renderQuestion() {
 
     feedback.className =
       `feedback ${
-        correct ? "correct" : "incorrect"
+        correct
+          ? "correct"
+          : "incorrect"
       }`;
 
     const feedbackTitle =
@@ -562,14 +591,16 @@ function renderQuestion() {
       document.createElement("span");
 
     feedbackText.textContent =
-      question.explanation;
+      question.explanation || "";
 
     feedback.append(
       feedbackTitle,
       feedbackText
     );
 
-    feedbackContainer.appendChild(feedback);
+    feedbackContainer.appendChild(
+      feedback
+    );
   }
 
   previousButton.disabled =
@@ -632,7 +663,9 @@ async function finishQuiz() {
   }
 
   const missingIndex =
-    answers.findIndex(answer => answer === null);
+    answers.findIndex(
+      answer => answer === null
+    );
 
   if (missingIndex !== -1) {
     currentIndex = missingIndex;
@@ -644,7 +677,15 @@ async function finishQuiz() {
     return;
   }
 
-  const score = getCurrentScore();
+  if (!currentUser) {
+    alert(
+      "Tu dois être connecté pour enregistrer ton résultat."
+    );
+    return;
+  }
+
+  const score =
+    getCurrentScore();
 
   finishButton.disabled = true;
   finishButton.textContent =
@@ -656,7 +697,8 @@ async function finishQuiz() {
         theme: currentTheme,
         level: currentLevel,
         score,
-        totalQuestions: currentQuestions.length
+        totalQuestions:
+          currentQuestions.length
       });
 
     userProgress =
@@ -688,13 +730,24 @@ async function finishQuiz() {
     configureResultButtons(result);
     renderThemes();
   } catch (error) {
-    console.error("Erreur Firestore :", error);
+    console.error(
+      "Erreur complète Firestore :",
+      error
+    );
+
+    const errorCode =
+      error?.code || "code_inconnu";
+
+    const errorMessage =
+      error?.message || String(error);
 
     message.textContent =
-      "Erreur lors de l'enregistrement. Vérifie Firestore.";
+      `Erreur Firebase : ${errorCode}`;
 
     alert(
-      `Erreur Firestore : ${error.message}`
+      `Erreur Firebase\n\n` +
+      `Code : ${errorCode}\n\n` +
+      `Message : ${errorMessage}`
     );
   } finally {
     finishButton.disabled = false;
@@ -714,7 +767,8 @@ function renderReview() {
       const article =
         document.createElement("article");
 
-      article.className = "review-item";
+      article.className =
+        "review-item";
 
       const title =
         document.createElement("h3");
@@ -738,10 +792,14 @@ function renderReview() {
       const answer =
         document.createElement("p");
 
-      answer.innerHTML =
-        "<strong>Ta réponse :</strong> ";
+      const answerLabel =
+        document.createElement("strong");
+
+      answerLabel.textContent =
+        "Ta réponse : ";
 
       answer.append(
+        answerLabel,
         document.createTextNode(
           answers[index] || "Aucune réponse"
         )
@@ -750,11 +808,17 @@ function renderReview() {
       const correct =
         document.createElement("p");
 
-      correct.innerHTML =
-        "<strong>Bonne réponse :</strong> ";
+      const correctLabel =
+        document.createElement("strong");
+
+      correctLabel.textContent =
+        "Bonne réponse : ";
 
       correct.append(
-        document.createTextNode(question.correct)
+        correctLabel,
+        document.createTextNode(
+          question.correct
+        )
       );
 
       const explanation =
@@ -763,12 +827,16 @@ function renderReview() {
       explanation.className =
         "explanation";
 
-      explanation.innerHTML =
-        "<strong>Explication :</strong> ";
+      const explanationLabel =
+        document.createElement("strong");
+
+      explanationLabel.textContent =
+        "Explication : ";
 
       explanation.append(
+        explanationLabel,
         document.createTextNode(
-          question.explanation
+          question.explanation || ""
         )
       );
 
@@ -805,7 +873,6 @@ function configureResultButtons(result) {
   ) {
     continueButton.textContent =
       "Passer au thème suivant →";
-
     return;
   }
 
@@ -814,7 +881,6 @@ function configureResultButtons(result) {
       `Passer au niveau ${
         levelLabel(result.nextLevel)
       } →`;
-
     return;
   }
 
@@ -858,119 +924,168 @@ function showHome() {
   renderThemes();
 }
 
-loginButton.addEventListener(
-  "click",
-  async () => {
-    try {
-      await signInWithPopup(
-        auth,
-        googleProvider
-      );
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        `Connexion impossible : ${error.message}`
-      );
-    }
-  }
-);
-
-logoutButton.addEventListener(
-  "click",
-  async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        "Erreur pendant la déconnexion."
-      );
-    }
-  }
-);
-
-previousButton.addEventListener(
-  "click",
-  previousQuestion
-);
-
-nextButton.addEventListener(
-  "click",
-  nextQuestion
-);
-
-finishButton.addEventListener(
-  "click",
-  event => {
-    event.preventDefault();
-    finishQuiz();
-  }
-);
-
-retryButton.addEventListener(
-  "click",
-  () => {
-    startQuiz(currentLevel);
-  }
-);
-
-continueButton.addEventListener(
-  "click",
-  continueProgression
-);
-
-document
-  .getElementById("back-to-themes")
-  .addEventListener(
+if (elementsAreReady()) {
+  loginButton.addEventListener(
     "click",
-    showHome
+    async () => {
+      try {
+        await signInWithPopup(
+          auth,
+          googleProvider
+        );
+      } catch (error) {
+        console.error(
+          "Erreur connexion Google :",
+          error
+        );
+
+        const errorCode =
+          error?.code || "code_inconnu";
+
+        const errorMessage =
+          error?.message || String(error);
+
+        alert(
+          `Connexion impossible\n\n` +
+          `Code : ${errorCode}\n\n` +
+          `Message : ${errorMessage}`
+        );
+      }
+    }
   );
 
-onAuthStateChanged(
-  auth,
-  async user => {
-    currentUser = user;
-    renderUser(user);
+  logoutButton.addEventListener(
+    "click",
+    async () => {
+      try {
+        await signOut(auth);
+      } catch (error) {
+        console.error(
+          "Erreur déconnexion :",
+          error
+        );
 
-    if (!user) {
-      userProgress =
-        normalizeProgress(defaultProgress);
-
-      showHome();
-      return;
-    }
-
-    try {
-      userProgress =
-        await createOrUpdateUserProfile(user);
-
-      renderThemes();
-
-      const savedTheme =
-        userProgress.currentTheme;
-
-      const savedLevel =
-        userProgress.currentLevel;
-
-      if (
-        savedTheme &&
-        savedLevel &&
-        isThemeUnlocked(savedTheme) &&
-        isLevelUnlocked(savedTheme, savedLevel)
-      ) {
-        openTheme(savedTheme);
+        alert(
+          `Erreur pendant la déconnexion : ${
+            error?.message || error
+          }`
+        );
       }
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        "Impossible de charger ta progression. " +
-        "Vérifie Firebase et Firestore."
-      );
     }
-  }
-);
+  );
 
-showHome();
+  previousButton.addEventListener(
+    "click",
+    previousQuestion
+  );
+
+  nextButton.addEventListener(
+    "click",
+    nextQuestion
+  );
+
+  finishButton.addEventListener(
+    "click",
+    event => {
+      event.preventDefault();
+      finishQuiz();
+    }
+  );
+
+  retryButton.addEventListener(
+    "click",
+    () => {
+      startQuiz(currentLevel);
+    }
+  );
+
+  continueButton.addEventListener(
+    "click",
+    continueProgression
+  );
+
+  const backToThemes =
+    document.getElementById("back-to-themes");
+
+  if (backToThemes) {
+    backToThemes.addEventListener(
+      "click",
+      showHome
+    );
+  }
+
+  onAuthStateChanged(
+    auth,
+    async user => {
+      currentUser = user;
+      renderUser(user);
+
+      if (!user) {
+        userProgress =
+          normalizeProgress(defaultProgress);
+
+        showHome();
+        return;
+      }
+
+      try {
+        console.log(
+          "Utilisateur connecté :",
+          user.uid
+        );
+
+        userProgress =
+          await createOrUpdateUserProfile(user);
+
+        console.log(
+          "Progression chargée :",
+          userProgress
+        );
+
+        renderThemes();
+
+        const savedTheme =
+          userProgress.currentTheme;
+
+        const savedLevel =
+          userProgress.currentLevel;
+
+        if (
+          savedTheme &&
+          savedLevel &&
+          isThemeUnlocked(savedTheme) &&
+          isLevelUnlocked(
+            savedTheme,
+            savedLevel
+          )
+        ) {
+          openTheme(savedTheme);
+        }
+      } catch (error) {
+        console.error(
+          "Erreur chargement profil Firestore :",
+          error
+        );
+
+        const errorCode =
+          error?.code || "code_inconnu";
+
+        const errorMessage =
+          error?.message || String(error);
+
+        alert(
+          `Impossible de charger ta progression.\n\n` +
+          `Code : ${errorCode}\n\n` +
+          `Message : ${errorMessage}\n\n` +
+          `Vérifie Firestore, les règles et le domaine autorisé.`
+        );
+      }
+    }
+  );
+
+  showHome();
+} else {
+  console.error(
+    "Le fichier index.html ne contient pas tous les éléments nécessaires."
+  );
+}
