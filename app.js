@@ -1,13 +1,8 @@
+// app.js
+
 import {
   auth,
-  db,
   googleProvider,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-  increment,
   signInWithPopup,
   signOut,
   onAuthStateChanged
@@ -19,22 +14,15 @@ import {
   levelOrder
 } from "./questions.js";
 
-const defaultProgress = {
-  currentTheme: "fondamentaux",
-  currentLevel: "debutant",
-  unlockedThemes: ["fondamentaux"],
-  unlockedLevels: {
-    fondamentaux: ["debutant"],
-    jointures: [],
-    avance: []
-  },
-  completedLevels: {},
-  bestScores: {},
-  totalQuizzes: 0
-};
+import {
+  defaultProgress,
+  normalizeProgress,
+  createOrUpdateUserProfile,
+  saveQuizResult
+} from "./configstore.js";
 
 let currentUser = null;
-let userProgress = structuredClone(defaultProgress);
+let userProgress = normalizeProgress(defaultProgress);
 
 let currentTheme = null;
 let currentLevel = null;
@@ -86,12 +74,12 @@ function clone(value) {
 function shuffle(array) {
   const copied = [...array];
 
-  for (let index = copied.length - 1; index > 0; index--) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
+  for (let i = copied.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1));
 
-    [copied[index], copied[randomIndex]] = [
+    [copied[i], copied[randomIndex]] = [
       copied[randomIndex],
-      copied[index]
+      copied[i]
     ];
   }
 
@@ -115,77 +103,19 @@ function isThemeUnlocked(theme) {
 }
 
 function isLevelUnlocked(theme, level) {
-  return userProgress.unlockedLevels[theme].includes(level);
+  return Boolean(
+    userProgress.unlockedLevels[theme]?.includes(level)
+  );
+}
+
+function isCompleted(theme, level) {
+  return Boolean(
+    userProgress.completedLevels[levelKey(theme, level)]
+  );
 }
 
 function bestScore(theme, level) {
   return userProgress.bestScores[levelKey(theme, level)] || 0;
-}
-
-function isCompleted(theme, level) {
-  return Boolean(userProgress.completedLevels[levelKey(theme, level)]);
-}
-
-function normalizeProgress(data) {
-  return {
-    ...clone(defaultProgress),
-    ...data,
-    unlockedLevels: {
-      ...clone(defaultProgress.unlockedLevels),
-      ...(data.unlockedLevels || {})
-    },
-    completedLevels: data.completedLevels || {},
-    bestScores: data.bestScores || {}
-  };
-}
-
-async function createOrUpdateUserProfile(user) {
-  const userRef = doc(db, "users", user.uid);
-  const snapshot = await getDoc(userRef);
-
-  const [firstName = "", ...rest] = (user.displayName || "Utilisateur").split(" ");
-  const lastName = rest.join(" ");
-
-  if (!snapshot.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      firstName,
-      lastName,
-      fullName: user.displayName || "Utilisateur",
-      email: user.email || "",
-      photoURL: user.photoURL || "",
-      createdAt: serverTimestamp(),
-      lastLoginAt: serverTimestamp(),
-      loginCount: 1,
-      progress: clone(defaultProgress)
-    });
-
-    return clone(defaultProgress);
-  }
-
-  await updateDoc(userRef, {
-    firstName,
-    lastName,
-    fullName: user.displayName || "Utilisateur",
-    email: user.email || "",
-    photoURL: user.photoURL || "",
-    lastLoginAt: serverTimestamp(),
-    loginCount: increment(1)
-  });
-
-  const updatedSnapshot = await getDoc(userRef);
-  return normalizeProgress(updatedSnapshot.data().progress || defaultProgress);
-}
-
-async function saveProgress() {
-  if (!currentUser) return;
-
-  const userRef = doc(db, "users", currentUser.uid);
-
-  await updateDoc(userRef, {
-    progress: userProgress,
-    lastProgressUpdate: serverTimestamp()
-  });
 }
 
 function renderUser(user) {
@@ -201,7 +131,9 @@ function renderUser(user) {
   userArea.hidden = false;
 
   userName.textContent = user.displayName || "Utilisateur";
-  userPhoto.src = user.photoURL || "https://via.placeholder.com/44";
+  userPhoto.src =
+    user.photoURL ||
+    "https://via.placeholder.com/44";
 }
 
 function renderThemes() {
@@ -210,40 +142,52 @@ function renderThemes() {
   themeOrder.forEach((theme, index) => {
     const data = quizData[theme];
     const unlocked = isThemeUnlocked(theme);
-    const themeCompleted = levelOrder.every(level => isCompleted(theme, level));
+
+    const completed = levelOrder.every(level =>
+      isCompleted(theme, level)
+    );
 
     const button = document.createElement("button");
+
     button.type = "button";
     button.className = "theme-card";
     button.disabled = !currentUser || !unlocked;
 
-    if (themeCompleted) button.classList.add("completed");
+    if (completed) {
+      button.classList.add("completed");
+    }
 
-    const icon = ["📘", "🔗", "📊"][index];
+    const icons = ["📘", "🔗", "📊"];
 
     button.innerHTML = `
-      <div class="theme-icon">${icon}</div>
+      <div class="theme-icon">${icons[index]}</div>
+
       <h3>${index + 1}. ${data.title}</h3>
+
       <p>${data.description}</p>
+
       <div class="theme-footer">
-        <span>${
-          !currentUser
-            ? "Connecte-toi"
-            : themeCompleted
-              ? "Thème terminé ✓"
-              : unlocked
-                ? "Continuer →"
-                : "Verrouillé"
-        }</span>
+        <span>
+          ${
+            !currentUser
+              ? "Connecte-toi"
+              : completed
+                ? "Thème terminé ✓"
+                : unlocked
+                  ? "Continuer →"
+                  : "Verrouillé"
+          }
+        </span>
+
         <span class="pill ${
-          themeCompleted
+          completed
             ? "pill-success"
             : unlocked
               ? ""
               : "pill-lock"
         }">
           ${
-            themeCompleted
+            completed
               ? "✓ Terminé"
               : unlocked
                 ? "Disponible"
@@ -253,27 +197,35 @@ function renderThemes() {
       </div>
     `;
 
-    button.addEventListener("click", () => openTheme(theme));
+    button.addEventListener("click", () => {
+      openTheme(theme);
+    });
+
     themeGrid.appendChild(button);
   });
 }
 
 function openTheme(theme) {
-  if (!currentUser || !isThemeUnlocked(theme)) return;
+  if (!currentUser || !isThemeUnlocked(theme)) {
+    return;
+  }
 
   currentTheme = theme;
   currentLevel = null;
 
   emptyState.hidden = true;
+  levelPanel.hidden = false;
   quizPanel.hidden = true;
   resultsPanel.hidden = true;
-  levelPanel.hidden = false;
 
   themeTitle.textContent = quizData[theme].title;
   themeDescription.textContent = quizData[theme].description;
 
   renderLevels();
-  document.getElementById("quiz").scrollIntoView({ behavior: "smooth" });
+
+  document
+    .getElementById("quiz")
+    .scrollIntoView({ behavior: "smooth" });
 }
 
 function renderLevels() {
@@ -285,31 +237,43 @@ function renderLevels() {
     const score = bestScore(currentTheme, level);
 
     const button = document.createElement("button");
+
     button.type = "button";
     button.className = "level-card";
     button.disabled = !unlocked;
 
-    if (completed) button.classList.add("completed");
+    if (completed) {
+      button.classList.add("completed");
+    }
 
     button.innerHTML = `
       <strong>${levelLabel(level)}</strong>
-      <span>${
-        unlocked
-          ? "10 questions pour valider ce niveau."
-          : "Termine le niveau précédent."
-      }</span>
-      <small>${
-        completed
-          ? `✓ Réussi : ${score}/10`
-          : unlocked && score > 0
-            ? `Meilleur score : ${score}/10`
-            : unlocked
-              ? "Disponible"
-              : "🔒 Verrouillé"
-      }</small>
+
+      <span>
+        ${
+          unlocked
+            ? "10 questions pour valider ce niveau."
+            : "Termine le niveau précédent."
+        }
+      </span>
+
+      <small>
+        ${
+          completed
+            ? `✓ Réussi : ${score}/10`
+            : unlocked && score > 0
+              ? `Meilleur score : ${score}/10`
+              : unlocked
+                ? "Disponible"
+                : "🔒 Verrouillé"
+        }
+      </small>
     `;
 
-    button.addEventListener("click", () => startQuiz(level));
+    button.addEventListener("click", () => {
+      startQuiz(level);
+    });
+
     levelsContainer.appendChild(button);
   });
 }
@@ -322,17 +286,23 @@ function prepareQuestions(theme, level) {
 }
 
 function startQuiz(level) {
-  if (!isLevelUnlocked(currentTheme, level)) return;
+  if (!isLevelUnlocked(currentTheme, level)) {
+    return;
+  }
 
   currentLevel = level;
-  currentQuestions = prepareQuestions(currentTheme, currentLevel);
+  currentQuestions = prepareQuestions(
+    currentTheme,
+    currentLevel
+  );
+
   currentIndex = 0;
   answers = Array(currentQuestions.length).fill(null);
   validated = Array(currentQuestions.length).fill(false);
 
   levelPanel.hidden = true;
-  resultsPanel.hidden = true;
   quizPanel.hidden = false;
+  resultsPanel.hidden = true;
 
   quizTitle.textContent = quizData[currentTheme].title;
   quizBadge.textContent = `Niveau ${levelLabel(level)}`;
@@ -341,8 +311,12 @@ function startQuiz(level) {
 }
 
 function getCurrentScore() {
-  return answers.reduce((score, selected, index) => {
-    return score + (selected === currentQuestions[index].correct ? 1 : 0);
+  return answers.reduce((score, answer, index) => {
+    return score + (
+      answer === currentQuestions[index].correct
+        ? 1
+        : 0
+    );
   }, 0);
 }
 
@@ -350,9 +324,14 @@ function renderQuestion() {
   const question = currentQuestions[currentIndex];
   const total = currentQuestions.length;
 
-  questionCounter.textContent = `Question ${currentIndex + 1} sur ${total}`;
-  scoreLive.textContent = `Score actuel : ${getCurrentScore()}`;
-  progressFill.style.width = `${((currentIndex + 1) / total) * 100}%`;
+  questionCounter.textContent =
+    `Question ${currentIndex + 1} sur ${total}`;
+
+  scoreLive.textContent =
+    `Score actuel : ${getCurrentScore()}`;
+
+  progressFill.style.width =
+    `${((currentIndex + 1) / total) * 100}%`;
 
   questionContainer.replaceChildren();
   feedbackContainer.replaceChildren();
@@ -369,17 +348,24 @@ function renderQuestion() {
     label.className = "option";
 
     const input = document.createElement("input");
+
     input.type = "radio";
     input.name = "answer";
     input.value = option;
     input.checked = answers[currentIndex] === option;
     input.disabled = validated[currentIndex];
 
-    if (answers[currentIndex] === option && !validated[currentIndex]) {
+    if (
+      answers[currentIndex] === option &&
+      !validated[currentIndex]
+    ) {
       label.classList.add("selected");
     }
 
-    if (validated[currentIndex] && option === question.correct) {
+    if (
+      validated[currentIndex] &&
+      option === question.correct
+    ) {
       label.classList.add("correct");
     }
 
@@ -410,37 +396,51 @@ function renderQuestion() {
   questionContainer.append(title, options);
 
   if (validated[currentIndex]) {
-    const correct = answers[currentIndex] === question.correct;
+    const correct =
+      answers[currentIndex] === question.correct;
 
     feedbackContainer.innerHTML = `
-      <div class="feedback ${correct ? "correct" : "incorrect"}">
-        <strong>${
-          correct
-            ? "Bonne réponse !"
-            : `Réponse correcte : ${question.correct}`
-        }</strong>
+      <div class="feedback ${
+        correct ? "correct" : "incorrect"
+      }">
+        <strong>
+          ${
+            correct
+              ? "Bonne réponse !"
+              : `Réponse correcte : ${question.correct}`
+          }
+        </strong>
+
         <span>${question.explanation}</span>
       </div>
     `;
   }
 
   previousButton.disabled = currentIndex === 0;
-  nextButton.hidden = currentIndex === total - 1;
-  finishButton.hidden = currentIndex !== total - 1;
 
-  nextButton.textContent = validated[currentIndex]
-    ? "Question suivante →"
-    : "Valider puis continuer →";
+  nextButton.hidden =
+    currentIndex === total - 1;
+
+  finishButton.hidden =
+    currentIndex !== total - 1;
+
+  nextButton.textContent =
+    validated[currentIndex]
+      ? "Question suivante →"
+      : "Valider puis continuer →";
 }
 
 function validateCurrentQuestion() {
   if (!answers[currentIndex]) {
-    message.textContent = "Choisis une réponse avant de continuer.";
+    message.textContent =
+      "Choisis une réponse avant de continuer.";
+
     return false;
   }
 
   validated[currentIndex] = true;
   renderQuestion();
+
   return true;
 }
 
@@ -463,177 +463,176 @@ function previousQuestion() {
   }
 }
 
-function progressionAfterScore(score) {
-  const levelIndex = levelOrder.indexOf(currentLevel);
-  const themeIndex = themeOrder.indexOf(currentTheme);
-
-  if (score < 7) {
-    return { passed: false, action: "retry" };
-  }
-
-  userProgress.completedLevels[levelKey(currentTheme, currentLevel)] = true;
-
-  if (levelIndex < levelOrder.length - 1) {
-    const nextLevel = levelOrder[levelIndex + 1];
-
-    if (!userProgress.unlockedLevels[currentTheme].includes(nextLevel)) {
-      userProgress.unlockedLevels[currentTheme].push(nextLevel);
-    }
-
-    userProgress.currentTheme = currentTheme;
-    userProgress.currentLevel = nextLevel;
-
-    return { passed: true, action: "next-level", nextLevel };
-  }
-
-  if (themeIndex < themeOrder.length - 1) {
-    const nextTheme = themeOrder[themeIndex + 1];
-
-    if (!userProgress.unlockedThemes.includes(nextTheme)) {
-      userProgress.unlockedThemes.push(nextTheme);
-    }
-
-    if (!userProgress.unlockedLevels[nextTheme].includes("debutant")) {
-      userProgress.unlockedLevels[nextTheme].push("debutant");
-    }
-
-    userProgress.currentTheme = nextTheme;
-    userProgress.currentLevel = "debutant";
-
-    return { passed: true, action: "next-theme", nextTheme };
-  }
-
-  userProgress.currentTheme = "avance";
-  userProgress.currentLevel = "avance";
-
-  return { passed: true, action: "completed-all" };
-}
-
 async function finishQuiz() {
-  if (!validated[currentIndex] && !validateCurrentQuestion()) return;
+  if (
+    !validated[currentIndex] &&
+    !validateCurrentQuestion()
+  ) {
+    return;
+  }
 
-  const missingIndex = answers.findIndex(answer => answer === null);
+  const missingIndex = answers.findIndex(
+    answer => answer === null
+  );
 
   if (missingIndex !== -1) {
     currentIndex = missingIndex;
     renderQuestion();
-    message.textContent = "Réponds à toutes les questions avant de terminer.";
+
+    message.textContent =
+      "Réponds à toutes les questions avant de terminer.";
+
     return;
   }
 
   const score = getCurrentScore();
-  const key = levelKey(currentTheme, currentLevel);
 
-  userProgress.bestScores[key] = Math.max(
-    userProgress.bestScores[key] || 0,
-    score
-  );
+  try {
+    const result = await saveQuizResult({
+      theme: currentTheme,
+      level: currentLevel,
+      score,
+      totalQuestions: currentQuestions.length
+    });
 
-  userProgress.totalQuizzes += 1;
+    userProgress = normalizeProgress(result.progress);
 
-  const progression = progressionAfterScore(score);
+    quizPanel.hidden = true;
+    resultsPanel.hidden = false;
 
-  await saveProgress();
+    scoreNumber.textContent =
+      `${score}/${currentQuestions.length}`;
 
-  quizPanel.hidden = true;
-  resultsPanel.hidden = false;
+    scorePercent.textContent =
+      `${Math.round(
+        (score / currentQuestions.length) * 100
+      )} %`;
 
-  scoreNumber.textContent = `${score}/10`;
-  scorePercent.textContent = `${score * 10} %`;
+    if (score < 7) {
+      resultMessage.textContent =
+        "Tu dois obtenir au moins 7/10. Recommence ce niveau.";
+    } else if (result.perfect) {
+      resultMessage.textContent =
+        "Félicitations ! Score parfait et passage automatique.";
+    } else {
+      resultMessage.textContent =
+        "Bravo ! Tu peux refaire ce niveau ou continuer.";
+    }
 
-  if (!progression.passed) {
-    resultMessage.textContent =
-      "Tu dois obtenir au moins 7/10. Relis les corrections, puis recommence ce niveau.";
-  } else if (score === 10) {
-    resultMessage.textContent =
-      "Félicitations ! Score parfait : passage automatique à la prochaine étape.";
-  } else {
-    resultMessage.textContent =
-      "Bravo ! Tu peux refaire ce niveau ou continuer ton parcours.";
+    renderReview();
+    configureResultButtons(result);
+    renderThemes();
+  } catch (error) {
+    console.error(error);
+
+    message.textContent =
+      "Erreur lors de l'enregistrement du résultat.";
   }
-
-  renderReview();
-  configureResultButtons(progression, score);
-  renderThemes();
 }
 
 function renderReview() {
   reviewContainer.replaceChildren();
 
   currentQuestions.forEach((question, index) => {
-    const good = answers[index] === question.correct;
+    const good =
+      answers[index] === question.correct;
 
-    const item = document.createElement("article");
-    item.className = "review-item";
+    const article = document.createElement("article");
+    article.className = "review-item";
 
-    item.innerHTML = `
+    article.innerHTML = `
       <h3>${index + 1}. ${question.text}</h3>
-      <span class="review-status ${good ? "good" : "bad"}">
+
+      <span class="review-status ${
+        good ? "good" : "bad"
+      }">
         ${good ? "Bonne réponse" : "À revoir"}
       </span>
-      <p><strong>Ta réponse :</strong> ${answers[index]}</p>
-      <p><strong>Bonne réponse :</strong> ${question.correct}</p>
+
+      <p>
+        <strong>Ta réponse :</strong>
+        ${answers[index]}
+      </p>
+
+      <p>
+        <strong>Bonne réponse :</strong>
+        ${question.correct}
+      </p>
+
       <div class="explanation">
-        <strong>Explication :</strong> ${question.explanation}
+        <strong>Explication :</strong>
+        ${question.explanation}
       </div>
     `;
 
-    reviewContainer.appendChild(item);
+    reviewContainer.appendChild(article);
   });
 }
 
-function configureResultButtons(progression, score) {
+function configureResultButtons(result) {
   retryButton.hidden = false;
-  continueButton.hidden = !progression.passed;
+  continueButton.hidden = !result.passed;
 
-  if (!progression.passed) {
-    retryButton.textContent = "Refaire ce niveau";
+  retryButton.textContent =
+    result.perfect
+      ? "Refaire pour réviser"
+      : "Refaire ce niveau";
+
+  if (!result.passed) {
     return;
   }
 
-  if (progression.action === "next-level") {
+  if (
+    result.nextTheme &&
+    result.nextTheme !== currentTheme
+  ) {
     continueButton.textContent =
-      `Passer au niveau ${levelLabel(progression.nextLevel)} →`;
+      "Passer au thème suivant →";
+
+    return;
   }
 
-  if (progression.action === "next-theme") {
-    continueButton.textContent = "Passer au thème suivant →";
+  if (result.nextLevel) {
+    continueButton.textContent =
+      `Passer au niveau ${
+        levelLabel(result.nextLevel)
+      } →`;
+
+    return;
   }
 
-  if (progression.action === "completed-all") {
-    continueButton.textContent = "Voir mon parcours terminé";
-  }
-
-  retryButton.textContent = score === 10
-    ? "Refaire pour réviser"
-    : "Refaire ce niveau";
+  continueButton.textContent =
+    "Voir mon parcours terminé";
 }
 
 function continueProgression() {
-  const score = getCurrentScore();
-  const progression = progressionAfterScore(score);
-
-  if (progression.action === "next-level") {
-    startQuiz(progression.nextLevel);
+  if (!currentUser) {
     return;
   }
 
-  if (progression.action === "next-theme") {
-    openTheme(progression.nextTheme);
-    return;
-  }
+  if (userProgress.currentTheme) {
+    openTheme(userProgress.currentTheme);
 
-  showHome();
+    if (
+      userProgress.currentLevel &&
+      isLevelUnlocked(
+        userProgress.currentTheme,
+        userProgress.currentLevel
+      )
+    ) {
+      startQuiz(userProgress.currentLevel);
+    }
+  }
 }
 
 function showHome() {
   currentTheme = null;
   currentLevel = null;
 
+  emptyState.hidden = false;
   levelPanel.hidden = true;
   quizPanel.hidden = true;
   resultsPanel.hidden = true;
-  emptyState.hidden = false;
 
   renderThemes();
 }
@@ -642,53 +641,89 @@ loginButton.addEventListener("click", async () => {
   try {
     await signInWithPopup(auth, googleProvider);
   } catch (error) {
+    console.error(error);
     alert(`Connexion impossible : ${error.message}`);
   }
 });
 
 logoutButton.addEventListener("click", async () => {
-  await signOut(auth);
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error(error);
+    alert("Erreur pendant la déconnexion.");
+  }
 });
 
-previousButton.addEventListener("click", previousQuestion);
-nextButton.addEventListener("click", nextQuestion);
+previousButton.addEventListener(
+  "click",
+  previousQuestion
+);
 
-finishButton.addEventListener("click", event => {
-  event.preventDefault();
-  finishQuiz();
-});
+nextButton.addEventListener(
+  "click",
+  nextQuestion
+);
 
-retryButton.addEventListener("click", () => {
-  startQuiz(currentLevel);
-});
+finishButton.addEventListener(
+  "click",
+  event => {
+    event.preventDefault();
+    finishQuiz();
+  }
+);
 
-continueButton.addEventListener("click", continueProgression);
+retryButton.addEventListener(
+  "click",
+  () => startQuiz(currentLevel)
+);
 
-document.getElementById("back-to-themes").addEventListener("click", showHome);
+continueButton.addEventListener(
+  "click",
+  continueProgression
+);
+
+document
+  .getElementById("back-to-themes")
+  .addEventListener("click", showHome);
 
 onAuthStateChanged(auth, async user => {
   currentUser = user;
   renderUser(user);
 
   if (!user) {
-    userProgress = clone(defaultProgress);
+    userProgress = normalizeProgress(defaultProgress);
     showHome();
     return;
   }
 
   try {
-    userProgress = await createOrUpdateUserProfile(user);
+    userProgress =
+      await createOrUpdateUserProfile(user);
+
     renderThemes();
 
-    const savedTheme = userProgress.currentTheme;
-    const savedLevel = userProgress.currentLevel;
+    const savedTheme =
+      userProgress.currentTheme;
 
-    if (savedTheme && savedLevel && isThemeUnlocked(savedTheme)) {
+    const savedLevel =
+      userProgress.currentLevel;
+
+    if (
+      savedTheme &&
+      savedLevel &&
+      isThemeUnlocked(savedTheme) &&
+      isLevelUnlocked(savedTheme, savedLevel)
+    ) {
       openTheme(savedTheme);
     }
   } catch (error) {
     console.error(error);
-    alert("Impossible de charger ta progression. Vérifie Firebase et Firestore.");
+
+    alert(
+      "Impossible de charger ta progression. " +
+      "Vérifie Firebase et les règles Firestore."
+    );
   }
 });
 
