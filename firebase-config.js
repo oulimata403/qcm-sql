@@ -1,50 +1,17 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-  increment
-} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
-
-/*
-  Remplace toutes les valeurs par celles données
-  dans Firebase Console > Project settings > Your apps.
-*/
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "REMPLACE_PAR_TON_API_KEY",
-  authDomain: "REMPLACE_PAR_TON_PROJET.firebaseapp.com",
-  projectId: "REMPLACE_PAR_TON_PROJECT_ID",
-  storageBucket: "REMPLACE_PAR_TON_PROJET.firebasestorage.app",
-  messagingSenderId: "REMPLACE_PAR_TON_MESSAGING_SENDER_ID",
-  appId: "REMPLACE_PAR_TON_APP_ID"
+  apiKey: "AIzaSyBB_jNBxrjJa3QUOTnckGsN1RgGrQM9_fY",
+  authDomain: "sql-master-quiz.firebaseapp.com",
+  projectId: "sql-master-quiz",
+  storageBucket: "sql-master-quiz.firebasestorage.app",
+  messagingSenderId: "580873780391",
+  appId: "1:580873780391:web:dd004142fdfb97f6676f82"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const googleProvider = new GoogleAuthProvider();
-
-export {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
-  increment,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged
-};
