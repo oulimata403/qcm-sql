@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -41,12 +42,6 @@
           class="user-area"
           hidden
         >
-          <img
-            id="user-photo"
-            src="https://via.placeholder.com/44"
-            alt="Photo de profil"
-          >
-
           <span id="user-name"></span>
         </div>
 
@@ -81,6 +76,134 @@
   </section>
 
   <main class="container">
+    <section
+      id="dashboard-section"
+      class="dashboard-section"
+      hidden
+    >
+      <div class="dashboard-header">
+        <div>
+          <span class="eyebrow">
+            Tableau de bord
+          </span>
+
+          <h2>
+            Bonjour
+            <span id="dashboard-first-name"></span>
+            👋
+          </h2>
+
+          <p>
+            Voici l’état de ton parcours SQL Master.
+          </p>
+        </div>
+      </div>
+
+      <div class="dashboard-stats">
+        <article class="dashboard-card">
+          <span class="dashboard-card-icon">
+            🏆
+          </span>
+
+          <strong id="dashboard-score">
+            0/10
+          </strong>
+
+          <span>
+            Meilleur score
+          </span>
+        </article>
+
+        <article class="dashboard-card">
+          <span class="dashboard-card-icon">
+            ✅
+          </span>
+
+          <strong id="dashboard-completed">
+            0
+          </strong>
+
+          <span>
+            Niveaux terminés
+          </span>
+        </article>
+
+        <article class="dashboard-card">
+          <span class="dashboard-card-icon">
+            📝
+          </span>
+
+          <strong id="dashboard-quizzes">
+            0
+          </strong>
+
+          <span>
+            Quiz réalisés
+          </span>
+        </article>
+
+        <article class="dashboard-card">
+          <span class="dashboard-card-icon">
+            🚀
+          </span>
+
+          <strong id="dashboard-level">
+            Débutant
+          </strong>
+
+          <span>
+            Niveau actuel
+          </span>
+        </article>
+      </div>
+
+      <div class="dashboard-progress-card">
+        <div class="dashboard-progress-header">
+          <div>
+            <strong>
+              Ta progression générale
+            </strong>
+
+            <span id="dashboard-progress-text">
+              0 %
+            </span>
+          </div>
+
+          <span id="dashboard-current-path">
+            Commence ton parcours
+          </span>
+        </div>
+
+        <div class="dashboard-progress-track">
+          <div
+            id="dashboard-progress-fill"
+            class="dashboard-progress-fill"
+          ></div>
+        </div>
+      </div>
+
+      <div class="dashboard-bottom">
+        <div class="dashboard-path-card">
+          <h3>
+            Ton parcours
+          </h3>
+
+          <div
+            id="dashboard-path"
+            class="dashboard-path"
+          ></div>
+        </div>
+
+        <button
+          id="dashboard-continue-button"
+          class="button button-success"
+          type="button"
+        >
+          Continuer mon parcours →
+        </button>
+      </div>
+    </section>
+
     <section id="themes">
       <div class="section-heading">
         <h2>Ton parcours SQL</h2>
@@ -103,7 +226,9 @@
           id="empty-state"
           class="empty-state"
         >
-          <div class="empty-icon">🎯</div>
+          <div class="empty-icon">
+            🎯
+          </div>
 
           <h3>
             Connecte-toi pour commencer
