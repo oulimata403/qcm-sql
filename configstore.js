@@ -9,396 +9,257 @@ import {
   serverTimestamp
 } from "./firebase-config.js";
 
+import { themeOrder, levelOrder, PASS_RATIO } from "./questions.js";
+
+const MAX_HISTORY = 60;
+
+function buildDefaultLevels() {
+  const levels = {};
+  themeOrder.forEach((theme, index) => {
+    levels[theme] = index === 0 ? [levelOrder[0]] : [];
+  });
+  return levels;
+}
+
 export const defaultProgress = {
-  currentTheme: "fondamentaux",
-
-  currentLevel: "debutant",
-
-  unlockedThemes: [
-    "fondamentaux"
-  ],
-
-  unlockedLevels: {
-    fondamentaux: [
-      "debutant"
-    ],
-
-    jointures: [],
-
-    avance: []
-  },
-
+  currentTheme: themeOrder[0],
+  currentLevel: levelOrder[0],
+  unlockedThemes: [themeOrder[0]],
+  unlockedLevels: buildDefaultLevels(),
   completedLevels: {},
-
-  bestScores: {},
-
+  bestPercent: {},
+  history: [],
   totalQuizzes: 0
 };
 
 function clone(value) {
-  return JSON.parse(
-    JSON.stringify(value)
-  );
+  return JSON.parse(JSON.stringify(value));
 }
 
 export function normalizeProgress(progress = {}) {
+  const base = clone(defaultProgress);
+  const source = progress || {};
+
   const normalized = {
-    ...clone(defaultProgress),
-    ...progress
+    ...base,
+    currentTheme: source.currentTheme || base.currentTheme,
+    currentLevel: source.currentLevel || base.currentLevel,
+    unlockedThemes: Array.isArray(source.unlockedThemes)
+      ? [...source.unlockedThemes]
+      : base.unlockedThemes,
+    unlockedLevels: {
+      ...base.unlockedLevels,
+      ...(source.unlockedLevels || {})
+    },
+    completedLevels:
+      source.completedLevels && typeof source.completedLevels === "object"
+        ? { ...source.completedLevels }
+        : {},
+    bestPercent:
+      source.bestPercent && typeof source.bestPercent === "object"
+        ? { ...source.bestPercent }
+        : {},
+    history: Array.isArray(source.history)
+      ? source.history.slice(-MAX_HISTORY)
+      : [],
+    totalQuizzes: Number(source.totalQuizzes || 0)
   };
 
-  normalized.unlockedThemes =
-    Array.isArray(progress.unlockedThemes)
-      ? [...progress.unlockedThemes]
-      : clone(
-          defaultProgress.unlockedThemes
-        );
+  // Cohérence : un thème dont le précédent est terminé est débloqué
+  themeOrder.forEach((theme, index) => {
+    if (index > 0) {
+      const previous = themeOrder[index - 1];
+      const previousDone = levelOrder.every(
+        level => normalized.completedLevels[`${previous}-${level}`]
+      );
+      if (previousDone && !normalized.unlockedThemes.includes(theme)) {
+        normalized.unlockedThemes.push(theme);
+      }
+    }
 
-  normalized.unlockedLevels = {
-    ...clone(
-      defaultProgress.unlockedLevels
-    ),
-    ...(progress.unlockedLevels || {})
-  };
+    if (!Array.isArray(normalized.unlockedLevels[theme])) {
+      normalized.unlockedLevels[theme] = [];
+    }
 
-  normalized.completedLevels =
-    progress.completedLevels &&
-    typeof progress.completedLevels === "object"
-      ? { ...progress.completedLevels }
-      : {};
+    if (
+      normalized.unlockedThemes.includes(theme) &&
+      !normalized.unlockedLevels[theme].includes(levelOrder[0])
+    ) {
+      normalized.unlockedLevels[theme].push(levelOrder[0]);
+    }
 
-  normalized.bestScores =
-    progress.bestScores &&
-    typeof progress.bestScores === "object"
-      ? { ...progress.bestScores }
-      : {};
-
-  normalized.totalQuizzes =
-    Number(progress.totalQuizzes || 0);
-
-  normalized.currentTheme =
-    progress.currentTheme ||
-    defaultProgress.currentTheme;
-
-  normalized.currentLevel =
-    progress.currentLevel ||
-    defaultProgress.currentLevel;
+    // Un niveau terminé débloque le suivant
+    levelOrder.forEach((level, levelIndex) => {
+      const next = levelOrder[levelIndex + 1];
+      if (
+        next &&
+        normalized.completedLevels[`${theme}-${level}`] &&
+        !normalized.unlockedLevels[theme].includes(next)
+      ) {
+        normalized.unlockedLevels[theme].push(next);
+      }
+    });
+  });
 
   return normalized;
 }
 
 function getCurrentUser() {
   const user = auth.currentUser;
-
   if (!user) {
-    throw new Error(
-      "Aucun utilisateur connecté."
-    );
+    throw new Error("Aucun utilisateur connecté.");
   }
-
   return user;
 }
 
 function splitDisplayName(displayName) {
-  const name =
-    displayName || "Utilisateur";
-
-  const parts =
-    name.trim().split(/\s+/);
-
-  const firstName =
-    parts.shift() || "Utilisateur";
-
-  const lastName =
-    parts.join(" ");
-
-  return {
-    firstName,
-    lastName
-  };
+  const name = displayName || "Utilisateur";
+  const parts = name.trim().split(/\s+/);
+  const firstName = parts.shift() || "Utilisateur";
+  const lastName = parts.join(" ");
+  return { firstName, lastName };
 }
 
-export async function createOrUpdateUserProfile(
-  user = auth.currentUser
-) {
+export async function createOrUpdateUserProfile(user = auth.currentUser) {
   if (!user) {
-    throw new Error(
-      "Aucun utilisateur connecté."
-    );
+    throw new Error("Aucun utilisateur connecté.");
   }
 
-  const userRef =
-    doc(db, "users", user.uid);
-
-  const snapshot =
-    await getDoc(userRef);
-
-  const {
-    firstName,
-    lastName
-  } = splitDisplayName(
-    user.displayName
-  );
+  const userRef = doc(db, "users", user.uid);
+  const snapshot = await getDoc(userRef);
+  const { firstName, lastName } = splitDisplayName(user.displayName);
 
   if (!snapshot.exists()) {
-    const profile = {
+    await setDoc(userRef, {
       uid: user.uid,
-
       firstName,
-
       lastName,
-
-      fullName:
-        user.displayName ||
-        "Utilisateur",
-
-      email:
-        user.email || "",
-
-      progress:
-        clone(defaultProgress),
-
+      fullName: user.displayName || "Utilisateur",
+      email: user.email || "",
+      progress: clone(defaultProgress),
       totalQuizzes: 0,
+      createdAt: serverTimestamp(),
+      lastLoginAt: serverTimestamp()
+    });
 
-      createdAt:
-        serverTimestamp(),
-
-      lastLoginAt:
-        serverTimestamp()
-    };
-
-    await setDoc(
-      userRef,
-      profile
-    );
-
-    return normalizeProgress(
-      defaultProgress
-    );
+    return normalizeProgress(defaultProgress);
   }
 
-  const data =
-    snapshot.data();
-
-  const progress =
-    normalizeProgress(
-      data.progress
-    );
+  const data = snapshot.data();
+  const progress = normalizeProgress(data.progress);
 
   await setDoc(
     userRef,
     {
       uid: user.uid,
-
       firstName,
-
       lastName,
-
-      fullName:
-        user.displayName ||
-        data.fullName ||
-        "Utilisateur",
-
-      email:
-        user.email ||
-        data.email ||
-        "",
-
-      lastLoginAt:
-        serverTimestamp(),
-
+      fullName: user.displayName || data.fullName || "Utilisateur",
+      email: user.email || data.email || "",
+      lastLoginAt: serverTimestamp(),
       progress
     },
-    {
-      merge: true
-    }
+    { merge: true }
   );
 
   return progress;
 }
 
-export async function saveUserProgress(
-  progress,
-  user = auth.currentUser
-) {
+export async function saveUserProgress(progress, user = auth.currentUser) {
   if (!user) {
-    throw new Error(
-      "Aucun utilisateur connecté."
-    );
+    throw new Error("Aucun utilisateur connecté.");
   }
 
-  const userRef =
-    doc(db, "users", user.uid);
-
-  const normalized =
-    normalizeProgress(progress);
+  const userRef = doc(db, "users", user.uid);
+  const normalized = normalizeProgress(progress);
 
   await setDoc(
     userRef,
     {
       progress: normalized,
-
-      totalQuizzes:
-        normalized.totalQuizzes,
-
-      lastProgressUpdate:
-        serverTimestamp()
+      totalQuizzes: normalized.totalQuizzes,
+      lastProgressUpdate: serverTimestamp()
     },
-    {
-      merge: true
-    }
+    { merge: true }
   );
 
   return normalized;
 }
 
-export async function saveQuizResult({
-  theme,
-  level,
-  score,
-  totalQuestions
-}) {
-  const user =
-    getCurrentUser();
+export async function saveQuizResult({ theme, level, score, totalQuestions }) {
+  const user = getCurrentUser();
+  const progress = await createOrUpdateUserProfile(user);
 
-  const progress =
-    await createOrUpdateUserProfile(
-      user
-    );
+  const normalizedScore = Number(score);
+  const total = Number(totalQuestions) || 1;
+  const percent = Math.round((normalizedScore / total) * 100);
+  const key = `${theme}-${level}`;
+  const passed = normalizedScore / total >= PASS_RATIO;
 
-  const normalizedScore =
-    Number(score);
+  progress.bestPercent[key] = Math.max(
+    Number(progress.bestPercent[key] || 0),
+    percent
+  );
 
-  const resultKey =
-    `${theme}-${level}`;
+  progress.totalQuizzes = Number(progress.totalQuizzes || 0) + 1;
 
-  const previousBest =
-    Number(
-      progress.bestScores?.[resultKey] || 0
-    );
+  progress.history.push({
+    theme,
+    level,
+    score: normalizedScore,
+    total,
+    at: Date.now()
+  });
+  progress.history = progress.history.slice(-MAX_HISTORY);
 
-  progress.bestScores[resultKey] =
-    Math.max(
-      previousBest,
-      normalizedScore
-    );
-
-  progress.totalQuizzes =
-    Number(
-      progress.totalQuizzes || 0
-    ) + 1;
-
-  const themes = [
-    "fondamentaux",
-    "jointures",
-    "avance"
-  ];
-
-  const levels = [
-    "debutant",
-    "intermediaire",
-    "avance"
-  ];
-
-  const themeIndex =
-    themes.indexOf(theme);
-
-  const levelIndex =
-    levels.indexOf(level);
+  const themeIndex = themeOrder.indexOf(theme);
+  const levelIndex = levelOrder.indexOf(level);
 
   let nextTheme = null;
   let nextLevel = null;
 
-  if (normalizedScore >= 7) {
-    progress.completedLevels[
-      resultKey
-    ] = true;
+  progress.currentTheme = theme;
+  progress.currentLevel = level;
 
-    if (levelIndex < levels.length - 1) {
+  if (passed) {
+    progress.completedLevels[key] = true;
+
+    if (levelIndex < levelOrder.length - 1) {
       nextTheme = theme;
-      nextLevel =
-        levels[levelIndex + 1];
+      nextLevel = levelOrder[levelIndex + 1];
 
-      if (
-        !progress.unlockedLevels[theme]
-          .includes(nextLevel)
-      ) {
-        progress.unlockedLevels[theme]
-          .push(nextLevel);
+      if (!progress.unlockedLevels[theme].includes(nextLevel)) {
+        progress.unlockedLevels[theme].push(nextLevel);
       }
 
-      progress.currentTheme =
-        theme;
+      progress.currentLevel = nextLevel;
+    } else if (themeIndex < themeOrder.length - 1) {
+      nextTheme = themeOrder[themeIndex + 1];
+      nextLevel = levelOrder[0];
 
-      progress.currentLevel =
-        nextLevel;
-    } else if (
-      themeIndex < themes.length - 1
-    ) {
-      nextTheme =
-        themes[themeIndex + 1];
-
-      nextLevel =
-        "debutant";
-
-      if (
-        !progress.unlockedThemes
-          .includes(nextTheme)
-      ) {
-        progress.unlockedThemes
-          .push(nextTheme);
+      if (!progress.unlockedThemes.includes(nextTheme)) {
+        progress.unlockedThemes.push(nextTheme);
       }
 
-      if (
-        !progress.unlockedLevels[nextTheme]
-          .includes("debutant")
-      ) {
-        progress.unlockedLevels[nextTheme]
-          .push("debutant");
+      if (!progress.unlockedLevels[nextTheme].includes(nextLevel)) {
+        progress.unlockedLevels[nextTheme].push(nextLevel);
       }
 
-      progress.currentTheme =
-        nextTheme;
-
-      progress.currentLevel =
-        nextLevel;
-    } else {
-      progress.currentTheme =
-        theme;
-
-      progress.currentLevel =
-        level;
+      progress.currentTheme = nextTheme;
+      progress.currentLevel = nextLevel;
     }
-  } else {
-    progress.currentTheme =
-      theme;
-
-    progress.currentLevel =
-      level;
   }
 
-  const savedProgress =
-    await saveUserProgress(
-      progress,
-      user
-    );
+  const savedProgress = await saveUserProgress(progress, user);
 
   return {
     progress: savedProgress,
-
     score: normalizedScore,
-
-    totalQuestions,
-
-    passed:
-      normalizedScore >= 7,
-
-    perfect:
-      normalizedScore ===
-      Number(totalQuestions),
-
+    totalQuestions: total,
+    percent,
+    passed,
+    perfect: normalizedScore === total,
     nextTheme,
-
     nextLevel
   };
 }
