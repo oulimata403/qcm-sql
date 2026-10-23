@@ -2,285 +2,95 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="description"
-    content="SQL Master Quiz avec connexion Google et progression enregistrée."
-  >
-
-  <title>SQL Master Quiz</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SQL Master Quiz : 240 questions pour progresser en SQL, avec correction détaillée et suivi de ton parcours.">
+  <title>SQL Master Quiz — Apprends SQL en jouant</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
   <header class="site-header">
     <nav class="container navbar">
-      <a
-        href="./index.html"
-        class="brand"
-      >
-        SQL <span>MASTER</span>
-      </a>
+      <a href="./index.html" class="brand">SQL <span>MASTER</span></a>
 
       <div class="account-actions">
-        <button
-          id="google-login-button"
-          class="button google-button"
-          type="button"
-        >
+        <button id="google-login-button" class="button google-button" type="button">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
           Continuer avec Google
         </button>
 
-        <div
-          id="user-area"
-          class="user-area"
-          hidden
-        >
+        <div id="user-area" class="user-area" hidden>
+          <span id="user-avatar" class="avatar" aria-hidden="true"></span>
           <span id="user-name"></span>
+          <button id="journey-button" class="button button-accent" type="button">📊 Mon parcours</button>
         </div>
 
-        <button
-          id="logout-button"
-          class="button button-outline"
-          type="button"
-          hidden
-        >
-          Déconnexion
-        </button>
+        <button id="logout-button" class="button button-ghost" type="button" hidden>Déconnexion</button>
       </div>
     </nav>
   </header>
 
   <section class="hero">
-    <div class="container">
-      <span class="eyebrow">
-        Apprentissage SQL guidé
-      </span>
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">⚡ 240 questions · 4 thèmes · 12 niveaux</span>
+        <h1>Deviens redoutable en <strong>SQL</strong>, un niveau après l'autre.</h1>
+        <p>
+          Du premier <code>SELECT</code> aux fonctions de fenêtre, chaque question te
+          pousse à réfléchir, et chaque correction t'explique <em>pourquoi</em>.
+          Connecte-toi avec Google pour garder ta progression et suivre ton évolution.
+        </p>
+        <div class="hero-badges">
+          <span>✅ Corrections détaillées</span>
+          <span>🔓 Niveaux à débloquer</span>
+          <span>📈 Suivi de progression</span>
+        </div>
+      </div>
 
-      <h1>
-        Progresse du plus simple au plus
-        <strong>avancé</strong>.
-      </h1>
-
-      <p>
-        Connecte-toi avec Google pour enregistrer ton nom,
-        tes scores et ton parcours.
-      </p>
+      <div class="code-card" aria-hidden="true">
+        <div class="code-dots"><i></i><i></i><i></i></div>
+<pre><code><b>SELECT</b> c.nom, <b>COUNT</b>(o.id) <b>AS</b> commandes
+<b>FROM</b> clients c
+<b>LEFT JOIN</b> commandes o
+  <b>ON</b> o.client_id = c.id
+<b>GROUP BY</b> c.nom
+<b>HAVING</b> <b>COUNT</b>(o.id) = <em>0</em>;</code></pre>
+        <p>Quels clients n'ont jamais commandé ? 🤔</p>
+      </div>
     </div>
   </section>
 
   <main class="container">
-    <section
-      id="dashboard-section"
-      class="dashboard-section"
-      hidden
-    >
-      <div class="dashboard-header">
-        <div>
-          <span class="eyebrow">
-            Tableau de bord
-          </span>
-
-          <h2>
-            Bonjour
-            <span id="dashboard-first-name"></span>
-            👋
-          </h2>
-
-          <p>
-            Voici l’état de ton parcours SQL Master.
-          </p>
-        </div>
-      </div>
-
-      <div class="dashboard-stats">
-        <article class="dashboard-card">
-          <span class="dashboard-card-icon">
-            🏆
-          </span>
-
-          <strong id="dashboard-score">
-            0/10
-          </strong>
-
-          <span>
-            Meilleur score
-          </span>
-        </article>
-
-        <article class="dashboard-card">
-          <span class="dashboard-card-icon">
-            ✅
-          </span>
-
-          <strong id="dashboard-completed">
-            0
-          </strong>
-
-          <span>
-            Niveaux terminés
-          </span>
-        </article>
-
-        <article class="dashboard-card">
-          <span class="dashboard-card-icon">
-            📝
-          </span>
-
-          <strong id="dashboard-quizzes">
-            0
-          </strong>
-
-          <span>
-            Quiz réalisés
-          </span>
-        </article>
-
-        <article class="dashboard-card">
-          <span class="dashboard-card-icon">
-            🚀
-          </span>
-
-          <strong id="dashboard-level">
-            Débutant
-          </strong>
-
-          <span>
-            Niveau actuel
-          </span>
-        </article>
-      </div>
-
-      <div class="dashboard-progress-card">
-        <div class="dashboard-progress-header">
-          <div>
-            <strong>
-              Ta progression générale
-            </strong>
-
-            <span id="dashboard-progress-text">
-              0 %
-            </span>
-          </div>
-
-          <span id="dashboard-current-path">
-            Commence ton parcours
-          </span>
-        </div>
-
-        <div class="dashboard-progress-track">
-          <div
-            id="dashboard-progress-fill"
-            class="dashboard-progress-fill"
-          ></div>
-        </div>
-      </div>
-
-      <div class="dashboard-bottom">
-        <div class="dashboard-path-card">
-          <h3>
-            Ton parcours
-          </h3>
-
-          <div
-            id="dashboard-path"
-            class="dashboard-path"
-          ></div>
-        </div>
-
-        <button
-          id="dashboard-continue-button"
-          class="button button-success"
-          type="button"
-        >
-          Continuer mon parcours →
-        </button>
-      </div>
-    </section>
-
     <section id="themes">
       <div class="section-heading">
         <h2>Ton parcours SQL</h2>
-
-        <p>
-          Les thèmes se déverrouillent lorsque les niveaux
-          précédents sont réussis.
-        </p>
+        <p>Réussis un niveau avec au moins 70 % pour débloquer le suivant. Chaque thème terminé ouvre le thème d'après.</p>
       </div>
-
-      <div
-        id="theme-grid"
-        class="theme-grid"
-      ></div>
+      <div id="theme-grid" class="theme-grid"></div>
     </section>
 
     <section id="quiz">
       <div class="quiz-shell">
-        <div
-          id="empty-state"
-          class="empty-state"
-        >
-          <div class="empty-icon">
-            🎯
-          </div>
-
-          <h3>
-            Connecte-toi pour commencer
-          </h3>
-
-          <p>
-            Ta progression sera enregistrée dans ton compte Google.
-          </p>
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon">🎯</div>
+          <h3>Connecte-toi pour commencer</h3>
+          <p>Ta progression, tes scores et ton évolution seront sauvegardés dans ton compte Google.</p>
         </div>
 
-        <div
-          id="level-panel"
-          hidden
-        >
+        <div id="level-panel" hidden>
           <h2 id="theme-title"></h2>
-
-          <p
-            id="theme-description"
-            class="intro"
-          ></p>
-
-          <div
-            id="levels-container"
-            class="level-grid"
-          ></div>
-
-          <button
-            id="back-to-themes"
-            class="button button-outline"
-            type="button"
-          >
-            ← Retour aux thèmes
-          </button>
+          <p id="theme-description" class="intro"></p>
+          <div id="levels-container" class="level-grid"></div>
+          <button id="back-to-themes" class="button button-outline" type="button">← Retour aux thèmes</button>
         </div>
 
-        <div
-          id="quiz-panel"
-          hidden
-        >
+        <div id="quiz-panel" hidden>
           <div class="quiz-header">
             <div>
               <h2 id="quiz-title"></h2>
-
-              <p>
-                Choisis une réponse puis valide.
-              </p>
+              <p>Choisis une réponse, valide, puis lis l'explication.</p>
             </div>
-
-            <span
-              id="quiz-badge"
-              class="quiz-badge"
-            ></span>
+            <span id="quiz-badge" class="quiz-badge"></span>
           </div>
 
           <div class="quiz-meta">
@@ -288,77 +98,28 @@
             <span id="score-live"></span>
           </div>
 
-          <div class="progress-track">
-            <div
-              id="progress-fill"
-              class="progress-fill"
-            ></div>
-          </div>
+          <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
 
           <div class="question-card">
-            <span class="question-label">
-              Question
-            </span>
-
-            <div
-              id="question-container"
-            ></div>
-
-            <div
-              id="feedback-container"
-            ></div>
+            <span class="question-label">Question</span>
+            <div id="question-container"></div>
+            <div id="feedback-container"></div>
           </div>
 
-          <p
-            id="message"
-            class="message"
-            role="status"
-            aria-live="polite"
-          ></p>
+          <p id="message" class="message" role="status" aria-live="polite"></p>
 
           <div class="navigation">
-            <button
-              id="previous-button"
-              class="button button-secondary"
-              type="button"
-            >
-              ← Précédent
-            </button>
-
-            <button
-              id="next-button"
-              class="button"
-              type="button"
-            >
-              Valider puis continuer →
-            </button>
-
-            <button
-              id="finish-button"
-              class="button button-success"
-              type="button"
-              hidden
-            >
-              Voir mon résultat
-            </button>
+            <button id="previous-button" class="button button-secondary" type="button">← Précédent</button>
+            <button id="next-button" class="button" type="button">Valider puis continuer →</button>
+            <button id="finish-button" class="button button-success" type="button" hidden>Valider la réponse</button>
           </div>
         </div>
 
-        <div
-          id="results-panel"
-          hidden
-        >
+        <div id="results-panel" hidden>
           <div class="result-top">
-            <span class="eyebrow">
-              Quiz terminé
-            </span>
-
-            <h2>
-              Ton résultat
-            </h2>
-
+            <span class="eyebrow">Quiz terminé</span>
+            <h2>Ton résultat</h2>
             <p id="result-message"></p>
-
             <div class="score-circle">
               <div>
                 <strong id="score-number"></strong>
@@ -367,46 +128,84 @@
             </div>
           </div>
 
-          <h3>
-            Correction détaillée
-          </h3>
-
-          <div
-            id="review-container"
-          ></div>
+          <h3>Correction détaillée</h3>
+          <div id="review-container"></div>
 
           <div class="result-actions">
-            <button
-              id="retry-button"
-              class="button"
-              type="button"
-            >
-              Refaire ce niveau
-            </button>
-
-            <button
-              id="continue-button"
-              class="button button-success"
-              type="button"
-              hidden
-            >
-              Continuer →
-            </button>
+            <button id="retry-button" class="button" type="button">Refaire ce niveau</button>
+            <button id="continue-button" class="button button-success" type="button" hidden>Continuer →</button>
           </div>
         </div>
       </div>
     </section>
   </main>
 
+  <!-- ================= MON PARCOURS (fenêtre) ================= -->
+  <div id="journey-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="true"></div>
+
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="j-title">
+      <button id="journey-close" class="modal-close" type="button" aria-label="Fermer">✕</button>
+
+      <header class="j-header">
+        <span class="eyebrow">Mon parcours</span>
+        <h2 id="j-title">Bonjour <span id="j-name"></span> 👋</h2>
+        <p id="j-subtitle">Voici où tu en es sur SQL Master.</p>
+      </header>
+
+      <div class="j-top">
+        <div class="j-ring-card">
+          <div id="j-ring"></div>
+          <strong>Progression globale</strong>
+          <span id="j-progress-text"></span>
+        </div>
+
+        <div class="j-stats">
+          <article class="j-stat"><span>🏆</span><strong id="j-best">0 %</strong><small>Meilleur score</small></article>
+          <article class="j-stat"><span>✅</span><strong id="j-completed">0</strong><small>Niveaux réussis</small></article>
+          <article class="j-stat"><span>📝</span><strong id="j-quizzes">0</strong><small>Quiz réalisés</small></article>
+          <article class="j-stat"><span>🎯</span><strong id="j-average">0 %</strong><small>Moyenne récente</small></article>
+        </div>
+      </div>
+
+      <section class="j-card">
+        <div class="j-card-head">
+          <h3>📈 Évolution de tes scores</h3>
+          <small>20 derniers quiz · ligne verte = seuil de réussite (70 %)</small>
+        </div>
+        <div id="j-evolution"></div>
+      </section>
+
+      <section class="j-card">
+        <div class="j-card-head">
+          <h3>📊 Meilleurs scores par thème</h3>
+          <small>Débutant · Intermédiaire · Avancé</small>
+        </div>
+        <div id="j-themes"></div>
+      </section>
+
+      <div class="j-two">
+        <section class="j-card">
+          <div class="j-card-head"><h3>🗺️ Ton chemin</h3></div>
+          <div id="j-path" class="j-path"></div>
+        </section>
+
+        <section class="j-card">
+          <div class="j-card-head"><h3>🕘 Derniers quiz</h3></div>
+          <div id="j-history"></div>
+        </section>
+      </div>
+
+      <div class="j-actions">
+        <button id="j-continue" class="button button-success" type="button">Continuer mon parcours →</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="site-footer">
-    <p>
-      SQL Master Quiz — Connexion Google et progression personnalisée.
-    </p>
+    <p>SQL Master Quiz — Apprends, pratique, progresse. Ta progression est sauvegardée avec ton compte Google.</p>
   </footer>
 
-  <script
-    type="module"
-    src="./app.js"
-  ></script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
