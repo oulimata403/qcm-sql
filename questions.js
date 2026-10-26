@@ -221,7 +221,15 @@ export const quizData = {
         ["Qu'est-ce que USING (id_client) dans une jointure ?", "Un raccourci quand les deux colonnes portent le même nom", "Une clause de tri", "Un type d'index", "Un alias", "JOIN commandes USING (id_client) évite de réécrire ON."],
         ["Pourquoi NATURAL JOIN est-il risqué ?", "Il joint automatiquement sur toutes les colonnes de même nom, même par hasard", "Il est trop lent", "Il supprime des lignes", "Il crée des tables", "Un changement de schéma peut modifier silencieusement le résultat."],
         ["Quelle requête liste clients et commandes, même pour les clients sans commande ?", "FROM clients c LEFT JOIN commandes o ON c.id = o.client_id", "FROM clients c INNER JOIN commandes o ON c.id = o.client_id", "FROM commandes o LEFT JOIN clients c ON c.id = o.client_id", "FROM clients c CROSS JOIN commandes o", "La table à conserver entièrement doit être à gauche d'un LEFT JOIN."],
-        ["Quel élément relie généralement deux tables ?", "Une clé primaire et une clé étrangère", "Une ville et un prix", "Un nom et une date", "Deux colonnes aléatoires", "Les clés représentent la relation entre tables."]
+        ["Quel élément relie généralement deux tables ?", "Une clé primaire et une clé étrangère", "Une ville et un prix", "Un nom et une date", "Deux colonnes aléatoires", "Les clés représentent la relation entre tables."],
+        [
+  "Quelle jointure permet de comparer deux lignes d'une même table, par exemple un employé et son responsable ?",
+  "SELF JOIN",
+  "CROSS JOIN",
+  "FULL JOIN",
+  "UNION",
+  "Une SELF JOIN consiste à joindre une table avec elle-même, généralement à l'aide de deux alias."
+]
       ]),
 
       avance: mk([
@@ -298,7 +306,15 @@ export const quizData = {
         ["Que permet GROUP BY ville, pays ?", "Un groupe pour chaque combinaison ville + pays", "Un groupe par ville seulement", "Un groupe par pays seulement", "Un tri", "Chaque combinaison distincte forme un groupe."],
         ["Quelle est la différence entre UNION et UNION ALL ?", "UNION supprime les doublons, UNION ALL les conserve", "UNION ALL supprime les doublons", "Aucune différence", "UNION ALL est trié", "UNION ALL est plus rapide car il ne compare pas les lignes."],
         ["Que fait SUM(CASE WHEN statut = 'payee' THEN montant ELSE 0 END) ?", "Additionne seulement les montants des commandes payées", "Additionne tout", "Compte les commandes", "Supprime les non payées", "CASE dans un agrégat permet de calculer des totaux conditionnels."],
-        ["Que doit retourner une sous-requête scalaire ?", "Une seule valeur (une ligne, une colonne)", "Plusieurs colonnes", "Toute une table", "Rien", "Si elle retourne plusieurs lignes, la requête échoue."]
+        ["Que doit retourner une sous-requête scalaire ?", "Une seule valeur (une ligne, une colonne)", "Plusieurs colonnes", "Toute une table", "Rien", "Si elle retourne plusieurs lignes, la requête échoue."],
+        [
+  "Quelle est la différence entre EXISTS et IN dans une sous-requête ?",
+  "EXISTS vérifie la présence d'au moins une ligne, tandis que IN compare une valeur à un ensemble de valeurs",
+  "EXISTS trie les résultats, tandis que IN les regroupe",
+  "IN modifie les données, tandis que EXISTS les supprime",
+  "Il n'existe aucune différence de fonctionnement",
+  "EXISTS teste l'existence d'une ligne. IN teste l'appartenance d'une valeur à un ensemble. Le choix dépend du besoin et de la requête."
+]
       ]),
 
       avance: mk([
@@ -320,7 +336,15 @@ export const quizData = {
         ["Pourquoi ne peut-on pas écrire WHERE ROW_NUMBER() OVER (...) = 1 directement ?", "Le WHERE est évalué avant les fonctions de fenêtre : il faut une CTE ou sous-requête", "ROW_NUMBER est interdit", "OVER n'existe pas dans WHERE", "Cela supprime la table", "On calcule le rang dans une CTE, puis on filtre dessus."],
         ["Que retourne SUM(montant) OVER (PARTITION BY client) ?", "Le total du client sur chacune de ses lignes", "Un seul total global", "Le maximum du client", "Une erreur sans GROUP BY", "Contrairement à GROUP BY, chaque ligne est conservée."],
         ["Comment obtenir les 3 meilleures ventes par vendeur ?", "ROW_NUMBER() OVER (PARTITION BY vendeur ORDER BY montant DESC) <= 3 dans une CTE", "LIMIT 3 global", "SELECT TOP 3 vendeur", "GROUP BY vendeur LIMIT 3", "Un LIMIT global ne fonctionne pas par groupe."],
-        ["Que retourne COUNT(*) OVER () ?", "Le nombre total de lignes, répété sur chaque ligne", "1", "Une erreur", "Le nombre de colonnes", "OVER () sans partition = toute la table comme fenêtre."]
+        ["Que retourne COUNT(*) OVER () ?", "Le nombre total de lignes, répété sur chaque ligne", "1", "Une erreur", "Le nombre de colonnes", "OVER () sans partition = toute la table comme fenêtre."],
+        [
+  "Dans une fonction de fenêtre, que permet ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW ?",
+  "De calculer une valeur cumulée depuis la première ligne de la fenêtre jusqu'à la ligne courante",
+  "De sélectionner uniquement la première ligne",
+  "De supprimer toutes les lignes précédentes",
+  "De calculer uniquement le total global",
+  "UNBOUNDED PRECEDING définit le début de la fenêtre et CURRENT ROW sa fin. Avec SUM, cette clause permet notamment de calculer un cumul."
+]
       ])
     }
   }
