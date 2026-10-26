@@ -2,11 +2,30 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Un administrateur = un document /admins/{son UID}, créé à la main
+    // dans la console Firebase (personne ne peut en créer depuis le site).
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
     match /users/{userId} {
-      allow read, create, update: if request.auth != null
+      // Chacun lit son profil ; l'admin peut lire tous les profils
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+
+      // Chacun écrit uniquement son propre profil (l'admin ne modifie rien)
+      allow create, update: if request.auth != null
         && request.auth.uid == userId;
 
       allow delete: if false;
+    }
+
+    match /admins/{adminId} {
+      // Chacun peut vérifier s'il est admin, personne ne peut écrire
+      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow write: if false;
     }
   }
 }
