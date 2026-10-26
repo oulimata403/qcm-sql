@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administration — SQL Master Quiz</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <header class="site-header">
+    <nav class="container navbar">
+      <a href="./index.html" class="brand">SQL <span>MASTER</span> · Admin</a>
+
+      <div class="account-actions">
+        <a href="./index.html" class="button button-ghost">← Retour au site</a>
+        <span id="admin-user-name" class="user-area"></span>
+        <button id="admin-login" class="button google-button" type="button">Se connecter avec Google</button>
+        <button id="admin-logout" class="button button-ghost" type="button" hidden>Déconnexion</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container admin-main">
+
+    <div id="admin-gate" class="gate">
+      <div class="empty-icon">🔐</div>
+      <h3 id="admin-gate-title">Espace réservé à l'administrateur</h3>
+      <p id="admin-gate-text">Connecte-toi avec le compte Google administrateur pour continuer.</p>
+    </div>
+
+    <div id="admin-dashboard" hidden>
+      <div class="admin-toolbar">
+        <div>
+          <h1>🛠️ Tableau de bord administrateur</h1>
+          <p id="a-updated">Chargement…</p>
+        </div>
+        <div class="rev-actions">
+          <button id="a-refresh" class="button button-secondary" type="button">🔄 Actualiser</button>
+          <button id="a-export" class="button button-gold" type="button">⬇️ Exporter en CSV</button>
+        </div>
+      </div>
+
+      <div id="a-kpis" class="kpis"></div>
+
+      <div class="a-grid">
+        <section class="a-card">
+          <h3>🆕 Nouvelles inscriptions</h3>
+          <small>8 dernières semaines</small>
+          <div id="a-signups"></div>
+        </section>
+
+        <section class="a-card">
+          <h3>⚡ Activité</h3>
+          <small>Quiz et examens des 14 derniers jours</small>
+          <div id="a-activity"></div>
+        </section>
+
+        <section class="a-card">
+          <h3>🧗 Niveaux les plus difficiles</h3>
+          <small>Score moyen par niveau (du plus dur au plus facile)</small>
+          <div id="a-difficulty"></div>
+        </section>
+
+        <section class="a-card">
+          <h3>🎯 Progression des utilisateurs</h3>
+          <small>Répartition selon les niveaux réussis</small>
+          <div id="a-distribution"></div>
+        </section>
+
+        <section class="a-card full">
+          <h3>❌ Questions les plus ratées</h3>
+          <small>Erreurs actuellement enregistrées dans les espaces de révision</small>
+          <div id="a-missed"></div>
+        </section>
+      </div>
+
+      <div class="admin-toolbar">
+        <h2 style="margin:0;color:var(--forest)">👥 Utilisateurs <span id="a-count" class="pill"></span></h2>
+        <div class="rev-actions" style="flex:1;justify-content:flex-end">
+          <input id="a-search" class="search" type="search" placeholder="Rechercher un nom ou un email…" aria-label="Rechercher un utilisateur">
+          <select id="a-sort" class="select-input" aria-label="Trier les utilisateurs">
+            <option value="last">Dernière connexion</option>
+            <option value="progress">Progression</option>
+            <option value="quizzes">Nombre de quiz</option>
+            <option value="best">Meilleur score</option>
+            <option value="created">Date d'inscription</option>
+            <option value="name">Nom (A → Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="a-table">
+          <thead>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Progression</th>
+              <th>Quiz</th>
+              <th>Examens</th>
+              <th>Meilleur</th>
+              <th>Moyenne</th>
+              <th>Inscrit le</th>
+              <th>Dernière connexion</th>
+            </tr>
+          </thead>
+          <tbody id="a-table-body"></tbody>
+        </table>
+      </div>
+
+      <p class="admin-note">Les 500 profils les plus récemment connectés sont chargés. Clique sur une ligne pour voir le détail d'un utilisateur.</p>
+    </div>
+  </main>
+
+  <div id="user-modal" class="modal" hidden>
+    <div class="modal-backdrop" data-close="true"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <button id="user-modal-close" class="modal-close" type="button" aria-label="Fermer">✕</button>
+      <div id="u-content"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>SQL Master Quiz — Espace administrateur (lecture seule).</p>
+  </footer>
+
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>
