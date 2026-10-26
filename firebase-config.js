@@ -19,7 +19,12 @@ import {
   setDoc,
   updateDoc,
   serverTimestamp,
-  increment
+  increment,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit
 } from
   "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 
@@ -49,6 +54,11 @@ export {
   updateDoc,
   serverTimestamp,
   increment,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
   signInWithPopup,
   signOut,
   onAuthStateChanged
