@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="SQL Master Quiz : 240 questions pour progresser en SQL, avec correction détaillée et suivi de ton parcours.">
+  <meta name="description" content="SQL Master Quiz : 240 questions, mode examen, espace de révision et fiches de cours pour progresser en SQL.">
   <title>SQL Master Quiz — Apprends SQL en jouant</title>
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -22,7 +22,8 @@
         <div id="user-area" class="user-area" hidden>
           <span id="user-avatar" class="avatar" aria-hidden="true"></span>
           <span id="user-name"></span>
-          <button id="journey-button" class="button button-accent" type="button">📊 Mon parcours</button>
+          <button id="journey-button" class="button button-gold" type="button">📊 Mon parcours</button>
+          <a id="admin-link" class="button button-ghost" href="./admin.html" hidden>🛠️ Admin</a>
         </div>
 
         <button id="logout-button" class="button button-ghost" type="button" hidden>Déconnexion</button>
@@ -30,7 +31,16 @@
     </nav>
   </header>
 
-  <section class="hero">
+  <div class="tabs">
+    <div class="container tabs-inner" role="tablist">
+      <button class="tab active" data-view="quiz" type="button">🎯 Quiz</button>
+      <button class="tab" data-view="exam" type="button">⏱️ Mode examen</button>
+      <button class="tab" data-view="revision" type="button">🔁 Révision <span id="revision-count" class="tab-badge" hidden>0</span></button>
+      <button class="tab" data-view="courses" type="button">📖 Fiches de cours</button>
+    </div>
+  </div>
+
+  <section id="hero" class="hero">
     <div class="container hero-grid">
       <div>
         <span class="eyebrow">⚡ 240 questions · 4 thèmes · 12 niveaux</span>
@@ -42,7 +52,8 @@
         </p>
         <div class="hero-badges">
           <span>✅ Corrections détaillées</span>
-          <span>🔓 Niveaux à débloquer</span>
+          <span>⏱️ Mode examen</span>
+          <span>🔁 Révision de tes erreurs</span>
           <span>📈 Suivi de progression</span>
         </div>
       </div>
@@ -60,7 +71,8 @@
     </div>
   </section>
 
-  <main class="container">
+  <!-- ================= VUE : QUIZ ================= -->
+  <main id="view-quiz" class="container view">
     <section id="themes">
       <div class="section-heading">
         <h2>Ton parcours SQL</h2>
@@ -138,6 +150,149 @@
         </div>
       </div>
     </section>
+  </main>
+
+  <!-- ================= VUE : MODE EXAMEN ================= -->
+  <main id="view-exam" class="container view" hidden>
+    <div class="section-heading">
+      <h2>⏱️ Mode examen</h2>
+      <p>Questions aléatoires, chronomètre, aucune correction avant la fin. Mets-toi en conditions réelles.</p>
+    </div>
+
+    <div id="exam-gate" class="gate" hidden>
+      <div class="empty-icon">🔐</div>
+      <h3>Connecte-toi pour passer un examen</h3>
+      <p>Ton résultat sera enregistré et tes erreurs iront dans ton espace de révision.</p>
+    </div>
+
+    <div id="exam-setup" class="panel" hidden>
+      <h3>Configure ton examen</h3>
+
+      <div class="field">
+        <label>Thèmes de l'examen</label>
+        <div id="exam-themes" class="chips"></div>
+      </div>
+
+      <div class="field">
+        <label>Nombre de questions</label>
+        <div id="exam-counts" class="chips"></div>
+      </div>
+
+      <p id="exam-summary" class="exam-summary"></p>
+
+      <ul class="rules">
+        <li>Les questions sont tirées au hasard dans les niveaux que tu as débloqués.</li>
+        <li>Tu peux revenir sur une question et changer ta réponse avant de terminer.</li>
+        <li>La correction n'apparaît qu'à la fin. Si le temps est écoulé, l'examen se termine automatiquement.</li>
+      </ul>
+
+      <button id="exam-start" class="button button-lg" type="button">Démarrer l'examen →</button>
+
+      <h3 class="sub-title">Tes derniers examens</h3>
+      <div id="exam-last"></div>
+    </div>
+
+    <div id="exam-run" class="panel" hidden>
+      <div class="exam-bar">
+        <div id="exam-timer" class="exam-timer" role="timer">00:00</div>
+        <div id="exam-progress-text" class="exam-progress-text"></div>
+        <button id="exam-submit" class="button button-danger" type="button">Terminer l'examen</button>
+      </div>
+
+      <div class="progress-track"><div id="exam-progress-fill" class="progress-fill"></div></div>
+
+      <div id="exam-nav" class="exam-nav" aria-label="Navigation entre les questions"></div>
+
+      <div class="question-card">
+        <span id="exam-qlabel" class="question-label"></span>
+        <div id="exam-question"></div>
+      </div>
+
+      <div class="navigation">
+        <button id="exam-prev" class="button button-secondary" type="button">← Précédent</button>
+        <button id="exam-next" class="button" type="button">Suivant →</button>
+      </div>
+    </div>
+
+    <div id="exam-result" class="panel" hidden>
+      <div class="result-top">
+        <span class="eyebrow">Examen terminé</span>
+        <h2>Ton résultat</h2>
+        <p id="exam-result-message"></p>
+        <div class="score-circle">
+          <div>
+            <strong id="exam-result-score"></strong>
+            <span id="exam-result-percent"></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="exam-result-stats" class="j-stats exam-stats"></div>
+
+      <h3 class="sub-title">Détail par thème</h3>
+      <div id="exam-result-themes"></div>
+
+      <h3 class="sub-title">Correction détaillée</h3>
+      <div id="exam-review"></div>
+
+      <div class="result-actions">
+        <button id="exam-again" class="button" type="button">Nouvel examen</button>
+        <button id="exam-to-revision" class="button button-success" type="button">🔁 Réviser mes erreurs</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= VUE : RÉVISION ================= -->
+  <main id="view-revision" class="container view" hidden>
+    <div class="section-heading">
+      <h2>🔁 Espace de révision</h2>
+      <p>Retrouve les questions que tu as ratées, relis les corrections et refais-les jusqu'à les maîtriser.</p>
+    </div>
+
+    <div id="revision-gate" class="gate" hidden>
+      <div class="empty-icon">🔐</div>
+      <h3>Connecte-toi pour accéder à ta révision</h3>
+      <p>Tes erreurs sont enregistrées automatiquement dans ton compte.</p>
+    </div>
+
+    <div id="revision-home" hidden>
+      <div id="revision-stats" class="j-stats rev-stats"></div>
+
+      <div class="panel">
+        <div class="field">
+          <label>Filtrer par thème</label>
+          <div id="revision-filter" class="chips"></div>
+        </div>
+
+        <div class="rev-actions">
+          <button id="revision-start" class="button" type="button">🔁 Refaire mes questions ratées</button>
+          <button id="revision-random" class="button button-gold" type="button">🎲 Révision au hasard (10 questions)</button>
+        </div>
+      </div>
+
+      <div id="revision-list"></div>
+    </div>
+  </main>
+
+  <!-- ================= VUE : FICHES DE COURS ================= -->
+  <main id="view-courses" class="container view" hidden>
+    <div class="section-heading">
+      <h2>📖 Fiches de cours</h2>
+      <p>Une leçon avant chaque niveau : explications, syntaxes et exemples SQL.</p>
+    </div>
+
+    <div id="courses-home" class="courses-grid"></div>
+
+    <article id="course-reader" class="course-reader" hidden>
+      <button id="course-back" class="button button-outline" type="button">← Toutes les fiches</button>
+      <h2 id="course-title"></h2>
+      <p id="course-meta" class="course-meta"></p>
+      <div id="course-body"></div>
+      <div class="result-actions">
+        <button id="course-read-button" class="button button-success" type="button" hidden>✓ J'ai lu cette fiche</button>
+        <button id="course-quiz-button" class="button" type="button" hidden>Passer au quiz de ce niveau →</button>
+      </div>
+    </article>
   </main>
 
   <!-- ================= MON PARCOURS (fenêtre) ================= -->
