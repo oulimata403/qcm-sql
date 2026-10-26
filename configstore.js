@@ -12,6 +12,7 @@ import {
 import { themeOrder, levelOrder, PASS_RATIO } from "./questions.js";
 
 const MAX_HISTORY = 60;
+const MAX_EXAMS = 20;
 
 function buildDefaultLevels() {
   const levels = {};
@@ -29,11 +30,20 @@ export const defaultProgress = {
   completedLevels: {},
   bestPercent: {},
   history: [],
+  exams: [],
+  mistakes: {},
+  coursesRead: {},
   totalQuizzes: 0
 };
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function plainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? { ...value }
+    : {};
 }
 
 export function normalizeProgress(progress = {}) {
@@ -51,21 +61,15 @@ export function normalizeProgress(progress = {}) {
       ...base.unlockedLevels,
       ...(source.unlockedLevels || {})
     },
-    completedLevels:
-      source.completedLevels && typeof source.completedLevels === "object"
-        ? { ...source.completedLevels }
-        : {},
-    bestPercent:
-      source.bestPercent && typeof source.bestPercent === "object"
-        ? { ...source.bestPercent }
-        : {},
-    history: Array.isArray(source.history)
-      ? source.history.slice(-MAX_HISTORY)
-      : [],
+    completedLevels: plainObject(source.completedLevels),
+    bestPercent: plainObject(source.bestPercent),
+    history: Array.isArray(source.history) ? source.history.slice(-MAX_HISTORY) : [],
+    exams: Array.isArray(source.exams) ? source.exams.slice(-MAX_EXAMS) : [],
+    mistakes: plainObject(source.mistakes),
+    coursesRead: plainObject(source.coursesRead),
     totalQuizzes: Number(source.totalQuizzes || 0)
   };
 
-  // Cohérence : un thème dont le précédent est terminé est débloqué
   themeOrder.forEach((theme, index) => {
     if (index > 0) {
       const previous = themeOrder[index - 1];
@@ -88,7 +92,6 @@ export function normalizeProgress(progress = {}) {
       normalized.unlockedLevels[theme].push(levelOrder[0]);
     }
 
-    // Un niveau terminé débloque le suivant
     levelOrder.forEach((level, levelIndex) => {
       const next = levelOrder[levelIndex + 1];
       if (
@@ -119,6 +122,10 @@ function splitDisplayName(displayName) {
   const lastName = parts.join(" ");
   return { firstName, lastName };
 }
+
+/* ------------------------------------------------------------
+   Profil
+------------------------------------------------------------ */
 
 export async function createOrUpdateUserProfile(user = auth.currentUser) {
   if (!user) {
@@ -165,6 +172,11 @@ export async function createOrUpdateUserProfile(user = auth.currentUser) {
   return progress;
 }
 
+async function loadProgress(user) {
+  const snapshot = await getDoc(doc(db, "users", user.uid));
+  return normalizeProgress(snapshot.exists() ? snapshot.data().progress : {});
+}
+
 export async function saveUserProgress(progress, user = auth.currentUser) {
   if (!user) {
     throw new Error("Aucun utilisateur connecté.");
@@ -186,9 +198,84 @@ export async function saveUserProgress(progress, user = auth.currentUser) {
   return normalized;
 }
 
-export async function saveQuizResult({ theme, level, score, totalQuestions }) {
+/* ------------------------------------------------------------
+   Erreurs (espace de révision)
+------------------------------------------------------------ */
+
+function addMistakes(progress, ids = []) {
+  const now = Date.now();
+  ids.forEach(id => {
+    const previous = progress.mistakes[id] || { wrong: 0 };
+    progress.mistakes[id] = { wrong: Number(previous.wrong || 0) + 1, at: now };
+  });
+}
+
+function clearMistakes(progress, ids = []) {
+  ids.forEach(id => {
+    delete progress.mistakes[id];
+  });
+}
+
+export async function recordRevisionResult({ wrongIds = [], correctIds = [] }) {
   const user = getCurrentUser();
-  const progress = await createOrUpdateUserProfile(user);
+  const progress = await loadProgress(user);
+
+  clearMistakes(progress, correctIds);
+  addMistakes(progress, wrongIds);
+
+  return saveUserProgress(progress, user);
+}
+
+export async function removeMistake(id) {
+  const user = getCurrentUser();
+  const progress = await loadProgress(user);
+
+  clearMistakes(progress, [id]);
+
+  return saveUserProgress(progress, user);
+}
+
+/* ------------------------------------------------------------
+   Fiches de cours
+------------------------------------------------------------ */
+
+export async function markCourseRead(theme, level) {
+  const user = getCurrentUser();
+  const progress = await loadProgress(user);
+
+  progress.coursesRead[`${theme}-${level}`] = Date.now();
+
+  return saveUserProgress(progress, user);
+}
+
+/* ------------------------------------------------------------
+   Administrateur
+------------------------------------------------------------ */
+
+export async function checkIsAdmin(user = auth.currentUser) {
+  if (!user) return false;
+
+  try {
+    const snapshot = await getDoc(doc(db, "admins", user.uid));
+    return snapshot.exists();
+  } catch (error) {
+    return false;
+  }
+}
+
+/* ------------------------------------------------------------
+   Résultat d'un niveau
+------------------------------------------------------------ */
+
+export async function saveQuizResult({
+  theme,
+  level,
+  score,
+  totalQuestions,
+  missedIds = []
+}) {
+  const user = getCurrentUser();
+  const progress = await loadProgress(user);
 
   const normalizedScore = Number(score);
   const total = Number(totalQuestions) || 1;
@@ -211,6 +298,8 @@ export async function saveQuizResult({ theme, level, score, totalQuestions }) {
     at: Date.now()
   });
   progress.history = progress.history.slice(-MAX_HISTORY);
+
+  addMistakes(progress, missedIds);
 
   const themeIndex = themeOrder.indexOf(theme);
   const levelIndex = levelOrder.indexOf(level);
@@ -262,4 +351,35 @@ export async function saveQuizResult({ theme, level, score, totalQuestions }) {
     nextTheme,
     nextLevel
   };
+}
+
+/* ------------------------------------------------------------
+   Résultat d'un examen
+------------------------------------------------------------ */
+
+export async function recordExamResult({
+  score,
+  total,
+  usedSeconds,
+  limitSeconds,
+  byTheme = {},
+  missedIds = []
+}) {
+  const user = getCurrentUser();
+  const progress = await loadProgress(user);
+
+  progress.exams.push({
+    score: Number(score),
+    total: Number(total),
+    percent: Math.round((Number(score) / (Number(total) || 1)) * 100),
+    used: Number(usedSeconds),
+    limit: Number(limitSeconds),
+    byTheme,
+    at: Date.now()
+  });
+  progress.exams = progress.exams.slice(-MAX_EXAMS);
+
+  addMistakes(progress, missedIds);
+
+  return saveUserProgress(progress, user);
 }
