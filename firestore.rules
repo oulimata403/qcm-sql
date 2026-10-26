@@ -1,31 +1,40 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Un administrateur = un document /admins/{son UID}, créé à la main
-    // dans la console Firebase (personne ne peut en créer depuis le site).
+    // Vérifie que le compte connecté est l'administrateur autorisé.
     function isAdmin() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+        && request.auth.token.email == "oulimatat17@gmail.com"
+        && request.auth.token.email_verified == true;
     }
 
-    match /users/{userId} {
-      // Chacun lit son profil ; l'admin peut lire tous les profils
-      allow read: if request.auth != null
-        && (request.auth.uid == userId || isAdmin());
-
-      // Chacun écrit uniquement son propre profil (l'admin ne modifie rien)
-      allow create, update: if request.auth != null
+    // Vérifie que l'utilisateur accède à son propre profil.
+    function isOwner(userId) {
+      return request.auth != null
         && request.auth.uid == userId;
+    }
 
+    // Profils des utilisateurs
+    match /users/{userId} {
+
+      // Un utilisateur lit son profil.
+      // L'administrateur peut lire tous les profils.
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Chaque utilisateur peut créer et modifier uniquement son profil.
+      allow create, update: if isOwner(userId);
+
+      // Personne ne peut supprimer un profil.
       allow delete: if false;
     }
 
+    // Collection admins : aucun accès nécessaire avec cette méthode.
+    // L'administration est vérifiée à partir de l'adresse e-mail.
     match /admins/{adminId} {
-      // Chacun peut vérifier s'il est admin, personne ne peut écrire
-      allow read: if request.auth != null && request.auth.uid == adminId;
-      allow write: if false;
+      allow read, write: if false;
     }
   }
 }
