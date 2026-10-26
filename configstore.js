@@ -1,3 +1,4 @@
+
 // configstore.js
 
 import {
@@ -9,16 +10,32 @@ import {
   serverTimestamp
 } from "./firebase-config.js";
 
-import { themeOrder, levelOrder, PASS_RATIO } from "./questions.js";
+import {
+  themeOrder,
+  levelOrder,
+  PASS_RATIO
+} from "./questions.js";
+
+// ------------------------------------------------------------
+// Configuration
+// ------------------------------------------------------------
 
 const MAX_HISTORY = 60;
 const MAX_EXAMS = 20;
 
+const ADMIN_EMAIL = "oulimatat17@gmail.com";
+
+// ------------------------------------------------------------
+// Progression par défaut
+// ------------------------------------------------------------
+
 function buildDefaultLevels() {
   const levels = {};
+
   themeOrder.forEach((theme, index) => {
     levels[theme] = index === 0 ? [levelOrder[0]] : [];
   });
+
   return levels;
 }
 
@@ -35,6 +52,10 @@ export const defaultProgress = {
   coursesRead: {},
   totalQuizzes: 0
 };
+
+// ------------------------------------------------------------
+// Fonctions utilitaires
+// ------------------------------------------------------------
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -54,17 +75,27 @@ export function normalizeProgress(progress = {}) {
     ...base,
     currentTheme: source.currentTheme || base.currentTheme,
     currentLevel: source.currentLevel || base.currentLevel,
+
     unlockedThemes: Array.isArray(source.unlockedThemes)
       ? [...source.unlockedThemes]
       : base.unlockedThemes,
+
     unlockedLevels: {
       ...base.unlockedLevels,
       ...(source.unlockedLevels || {})
     },
+
     completedLevels: plainObject(source.completedLevels),
     bestPercent: plainObject(source.bestPercent),
-    history: Array.isArray(source.history) ? source.history.slice(-MAX_HISTORY) : [],
-    exams: Array.isArray(source.exams) ? source.exams.slice(-MAX_EXAMS) : [],
+
+    history: Array.isArray(source.history)
+      ? source.history.slice(-MAX_HISTORY)
+      : [],
+
+    exams: Array.isArray(source.exams)
+      ? source.exams.slice(-MAX_EXAMS)
+      : [],
+
     mistakes: plainObject(source.mistakes),
     coursesRead: plainObject(source.coursesRead),
     totalQuizzes: Number(source.totalQuizzes || 0)
@@ -73,10 +104,15 @@ export function normalizeProgress(progress = {}) {
   themeOrder.forEach((theme, index) => {
     if (index > 0) {
       const previous = themeOrder[index - 1];
+
       const previousDone = levelOrder.every(
         level => normalized.completedLevels[`${previous}-${level}`]
       );
-      if (previousDone && !normalized.unlockedThemes.includes(theme)) {
+
+      if (
+        previousDone &&
+        !normalized.unlockedThemes.includes(theme)
+      ) {
         normalized.unlockedThemes.push(theme);
       }
     }
@@ -94,6 +130,7 @@ export function normalizeProgress(progress = {}) {
 
     levelOrder.forEach((level, levelIndex) => {
       const next = levelOrder[levelIndex + 1];
+
       if (
         next &&
         normalized.completedLevels[`${theme}-${level}`] &&
@@ -109,32 +146,41 @@ export function normalizeProgress(progress = {}) {
 
 function getCurrentUser() {
   const user = auth.currentUser;
+
   if (!user) {
     throw new Error("Aucun utilisateur connecté.");
   }
+
   return user;
 }
 
 function splitDisplayName(displayName) {
   const name = displayName || "Utilisateur";
   const parts = name.trim().split(/\s+/);
+
   const firstName = parts.shift() || "Utilisateur";
   const lastName = parts.join(" ");
+
   return { firstName, lastName };
 }
 
-/* ------------------------------------------------------------
-   Profil
------------------------------------------------------------- */
+// ------------------------------------------------------------
+// Profil utilisateur
+// ------------------------------------------------------------
 
-export async function createOrUpdateUserProfile(user = auth.currentUser) {
+export async function createOrUpdateUserProfile(
+  user = auth.currentUser
+) {
   if (!user) {
     throw new Error("Aucun utilisateur connecté.");
   }
 
   const userRef = doc(db, "users", user.uid);
   const snapshot = await getDoc(userRef);
-  const { firstName, lastName } = splitDisplayName(user.displayName);
+
+  const { firstName, lastName } = splitDisplayName(
+    user.displayName
+  );
 
   if (!snapshot.exists()) {
     await setDoc(userRef, {
@@ -172,12 +218,28 @@ export async function createOrUpdateUserProfile(user = auth.currentUser) {
   return progress;
 }
 
+// ------------------------------------------------------------
+// Chargement de la progression
+// ------------------------------------------------------------
+
 async function loadProgress(user) {
-  const snapshot = await getDoc(doc(db, "users", user.uid));
-  return normalizeProgress(snapshot.exists() ? snapshot.data().progress : {});
+  const snapshot = await getDoc(
+    doc(db, "users", user.uid)
+  );
+
+  return normalizeProgress(
+    snapshot.exists() ? snapshot.data().progress : {}
+  );
 }
 
-export async function saveUserProgress(progress, user = auth.currentUser) {
+// ------------------------------------------------------------
+// Sauvegarde de la progression
+// ------------------------------------------------------------
+
+export async function saveUserProgress(
+  progress,
+  user = auth.currentUser
+) {
   if (!user) {
     throw new Error("Aucun utilisateur connecté.");
   }
@@ -198,15 +260,20 @@ export async function saveUserProgress(progress, user = auth.currentUser) {
   return normalized;
 }
 
-/* ------------------------------------------------------------
-   Erreurs (espace de révision)
------------------------------------------------------------- */
+// ------------------------------------------------------------
+// Gestion des erreurs : espace de révision
+// ------------------------------------------------------------
 
 function addMistakes(progress, ids = []) {
   const now = Date.now();
+
   ids.forEach(id => {
     const previous = progress.mistakes[id] || { wrong: 0 };
-    progress.mistakes[id] = { wrong: Number(previous.wrong || 0) + 1, at: now };
+
+    progress.mistakes[id] = {
+      wrong: Number(previous.wrong || 0) + 1,
+      at: now
+    };
   });
 }
 
@@ -216,7 +283,10 @@ function clearMistakes(progress, ids = []) {
   });
 }
 
-export async function recordRevisionResult({ wrongIds = [], correctIds = [] }) {
+export async function recordRevisionResult({
+  wrongIds = [],
+  correctIds = []
+}) {
   const user = getCurrentUser();
   const progress = await loadProgress(user);
 
@@ -235,9 +305,9 @@ export async function removeMistake(id) {
   return saveUserProgress(progress, user);
 }
 
-/* ------------------------------------------------------------
-   Fiches de cours
------------------------------------------------------------- */
+// ------------------------------------------------------------
+// Fiches de cours
+// ------------------------------------------------------------
 
 export async function markCourseRead(theme, level) {
   const user = getCurrentUser();
@@ -248,24 +318,28 @@ export async function markCourseRead(theme, level) {
   return saveUserProgress(progress, user);
 }
 
-/* ------------------------------------------------------------
-   Administrateur
------------------------------------------------------------- */
+// ------------------------------------------------------------
+// Administrateur
+// ------------------------------------------------------------
 
 export async function checkIsAdmin(user = auth.currentUser) {
-  if (!user) return false;
-
-  try {
-    const snapshot = await getDoc(doc(db, "admins", user.uid));
-    return snapshot.exists();
-  } catch (error) {
+  if (!user) {
     return false;
   }
+
+  // Vérification de l'adresse e-mail administrateur.
+  const userEmail = user.email?.trim().toLowerCase();
+  const adminEmail = ADMIN_EMAIL.toLowerCase();
+
+  return (
+    userEmail === adminEmail &&
+    user.emailVerified === true
+  );
 }
 
-/* ------------------------------------------------------------
-   Résultat d'un niveau
------------------------------------------------------------- */
+// ------------------------------------------------------------
+// Résultat d'un niveau
+// ------------------------------------------------------------
 
 export async function saveQuizResult({
   theme,
@@ -279,7 +353,11 @@ export async function saveQuizResult({
 
   const normalizedScore = Number(score);
   const total = Number(totalQuestions) || 1;
-  const percent = Math.round((normalizedScore / total) * 100);
+
+  const percent = Math.round(
+    (normalizedScore / total) * 100
+  );
+
   const key = `${theme}-${level}`;
   const passed = normalizedScore / total >= PASS_RATIO;
 
@@ -288,7 +366,8 @@ export async function saveQuizResult({
     percent
   );
 
-  progress.totalQuizzes = Number(progress.totalQuizzes || 0) + 1;
+  progress.totalQuizzes =
+    Number(progress.totalQuizzes || 0) + 1;
 
   progress.history.push({
     theme,
@@ -297,6 +376,7 @@ export async function saveQuizResult({
     total,
     at: Date.now()
   });
+
   progress.history = progress.history.slice(-MAX_HISTORY);
 
   addMistakes(progress, missedIds);
@@ -322,6 +402,7 @@ export async function saveQuizResult({
       }
 
       progress.currentLevel = nextLevel;
+
     } else if (themeIndex < themeOrder.length - 1) {
       nextTheme = themeOrder[themeIndex + 1];
       nextLevel = levelOrder[0];
@@ -339,7 +420,10 @@ export async function saveQuizResult({
     }
   }
 
-  const savedProgress = await saveUserProgress(progress, user);
+  const savedProgress = await saveUserProgress(
+    progress,
+    user
+  );
 
   return {
     progress: savedProgress,
@@ -353,9 +437,9 @@ export async function saveQuizResult({
   };
 }
 
-/* ------------------------------------------------------------
-   Résultat d'un examen
------------------------------------------------------------- */
+// ------------------------------------------------------------
+// Résultat d'un examen
+// ------------------------------------------------------------
 
 export async function recordExamResult({
   score,
@@ -371,12 +455,17 @@ export async function recordExamResult({
   progress.exams.push({
     score: Number(score),
     total: Number(total),
-    percent: Math.round((Number(score) / (Number(total) || 1)) * 100),
+
+    percent: Math.round(
+      (Number(score) / (Number(total) || 1)) * 100
+    ),
+
     used: Number(usedSeconds),
     limit: Number(limitSeconds),
     byTheme,
     at: Date.now()
   });
+
   progress.exams = progress.exams.slice(-MAX_EXAMS);
 
   addMistakes(progress, missedIds);
