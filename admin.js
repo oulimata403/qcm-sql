@@ -164,6 +164,95 @@ async function loadUsers() {
     refresh.disabled = false;
   }
 }
+/* ============================================================
+   Signalements
+============================================================ */
+
+let reports = [];
+
+async function loadReports() {
+  try {
+    const snapshot = await getDocs(
+      query(collection(db, "reports"), orderBy("createdAt", "desc"), limit(200))
+    );
+
+    reports = snapshot.docs.map(item => {
+      const data = item.data();
+      return { id: item.id, ...data, createdMs: toMs(data.createdAt) };
+    });
+
+    renderReports();
+  } catch (error) {
+    console.error("Erreur chargement des signalements :", error);
+    $("a-reports").innerHTML =
+      `<p class="empty-chart">Erreur : ${esc(error?.code || error?.message || "inconnue")}. Vérifie que les règles Firestore sont publiées.</p>`;
+  }
+}
+
+function renderReports() {
+  const pending = reports.filter(item => item.status !== "done").length;
+  $("a-reports-count").textContent = `${pending} à traiter / ${reports.length}`;
+
+  const sorted = [...reports].sort(
+    (a, b) => (a.status === "done") - (b.status === "done") || b.createdMs - a.createdMs
+  );
+
+  $("a-reports").innerHTML = sorted.length
+    ? sorted.map(item => {
+        const done = item.status === "done";
+        const reply = item.userEmail
+          ? `<a class="report-link" href="mailto:${esc(item.userEmail)}?subject=${encodeURIComponent("Re: " + (item.title || "Ton signalement"))}">✉️ Répondre</a>`
+          : "";
+
+        return `
+          <article class="report-item ${done ? "done" : ""}">
+            <div class="report-head">
+              <strong>${esc(item.title)}</strong>
+              <span class="pill ${done ? "pill-success" : "pill-danger"}">${done ? "Traité" : "À traiter"}</span>
+            </div>
+            <small>${esc(item.userName)} · ${esc(item.userEmail)} · ${formatDate(item.createdMs)}</small>
+            <p class="report-comment">${esc(item.comment)}</p>
+            <details>
+              <summary>Voir le détail de la question</summary>
+              <pre class="report-details">${esc(item.details)}</pre>
+            </details>
+            <div class="rev-actions">
+              <button class="button button-sm ${done ? "button-outline" : "button-success"}" type="button" data-action="toggle" data-id="${esc(item.id)}">${done ? "↩ Rouvrir" : "✔ Marquer comme traité"}</button>
+              <button class="button button-sm button-danger" type="button" data-action="delete" data-id="${esc(item.id)}">🗑 Supprimer</button>
+              ${reply}
+            </div>
+          </article>
+        `;
+      }).join("")
+    : `<p class="empty-chart">Aucun signalement pour l'instant 🎉</p>`;
+}
+
+$("a-reports").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
+
+  const report = reports.find(item => item.id === button.dataset.id);
+  if (!report) return;
+
+  if (button.dataset.action === "delete" && !confirm("Supprimer définitivement ce signalement ?")) return;
+
+  button.disabled = true;
+
+  try {
+    if (button.dataset.action === "delete") {
+      await deleteDoc(doc(db, "reports", report.id));
+      reports = reports.filter(item => item.id !== report.id);
+    } else {
+      const status = report.status === "done" ? "new" : "done";
+      await updateDoc(doc(db, "reports", report.id), { status });
+      report.status = status;
+    }
+    renderReports();
+  } catch (error) {
+    button.disabled = false;
+    alert(`Erreur : ${error?.code || error?.message || error}`);
+  }
+});
 
 /* ============================================================
    Graphiques
