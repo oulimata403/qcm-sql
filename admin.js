@@ -37,6 +37,7 @@ const TOTAL_LEVELS = themeOrder.length * levelOrder.length;
 
 let users = [];
 let visibleUsers = [];
+let authToken = 0; // évite les courses entre deux changements d'état de connexion
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -92,8 +93,12 @@ function entryPercent(entry) {
   return Math.round((Number(entry.score) / (Number(entry.total) || 1)) * 100);
 }
 
+function examPercent(exam) {
+  return Number.isFinite(Number(exam.percent)) ? Number(exam.percent) : entryPercent(exam);
+}
+
 function formatTime(totalSeconds) {
-  const seconds = Math.max(0, Math.round(totalSeconds));
+  const seconds = Math.max(0, Math.round(Number(totalSeconds) || 0));
   return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
@@ -106,11 +111,12 @@ function toUser(id, data) {
   const history = Array.isArray(progress.history) ? progress.history : [];
   const exams = Array.isArray(progress.exams) ? progress.exams : [];
   const mistakes = progress.mistakes && typeof progress.mistakes === "object" ? progress.mistakes : {};
+  const practiceDone = progress.practiceDone && typeof progress.practiceDone === "object" ? progress.practiceDone : {};
   const completedLevels = progress.completedLevels || {};
   const bestPercent = progress.bestPercent || {};
 
   const completed = Object.values(completedLevels).filter(Boolean).length;
-  const bests = Object.values(bestPercent).map(Number);
+  const bests = Object.values(bestPercent).map(Number).filter(Number.isFinite);
   const percents = history.map(entryPercent);
 
   return {
@@ -120,12 +126,13 @@ function toUser(id, data) {
     createdAt: toMs(data.createdAt),
     lastLogin: toMs(data.lastLoginAt),
     completed,
-    progressPct: Math.round((completed / TOTAL_LEVELS) * 100),
+    progressPct: Math.min(100, Math.round((completed / TOTAL_LEVELS) * 100)),
     quizzes: Number(data.totalQuizzes || progress.totalQuizzes || 0),
     best: bests.length ? Math.max(...bests) : 0,
     avg: percents.length
       ? Math.round(percents.reduce((sum, value) => sum + value, 0) / percents.length)
       : null,
+    practice: Object.keys(practiceDone).length,
     history,
     exams,
     mistakes,
@@ -134,6 +141,8 @@ function toUser(id, data) {
 }
 
 async function loadUsers() {
+  const refresh = $("a-refresh");
+  refresh.disabled = true;
   $("a-updated").textContent = "Chargement des utilisateurs…";
 
   try {
@@ -151,6 +160,8 @@ async function loadUsers() {
     console.error("Erreur chargement des utilisateurs :", error);
     $("a-updated").textContent =
       `Erreur : ${error?.code || error?.message || "inconnue"}. Vérifie que les règles Firestore autorisent l'administrateur.`;
+  } finally {
+    refresh.disabled = false;
   }
 }
 
@@ -159,7 +170,7 @@ async function loadUsers() {
 ============================================================ */
 
 function columnChart(items, cls = "") {
-  if (items.every(item => item.value === 0)) {
+  if (items.length === 0 || items.every(item => item.value === 0)) {
     return `<p class="empty-chart">Pas encore de données à afficher.</p>`;
   }
 
@@ -210,7 +221,7 @@ function renderKpis() {
   const now = Date.now();
   const total = users.length;
 
-  const active = users.filter(user => now - user.lastLogin <= WEEK).length;
+  const active = users.filter(user => user.lastLogin && now - user.lastLogin <= WEEK).length;
   const fresh = users.filter(user => user.createdAt && now - user.createdAt <= WEEK).length;
   const quizzes = users.reduce((sum, user) => sum + user.quizzes, 0);
   const exams = users.reduce((sum, user) => sum + user.exams.length, 0);
@@ -251,6 +262,7 @@ function renderSignups() {
     if (index >= 0 && index < 8) buckets[index] += 1;
   });
 
+  // Chaque barre est étiquetée avec le début de sa semaine
   const items = buckets
     .map((value, index) => ({ label: dayLabel(now - (index + 1) * WEEK), value }))
     .reverse();
@@ -263,7 +275,8 @@ function renderActivity() {
   const buckets = Array(14).fill(0);
 
   const count = at => {
-    const index = Math.floor((today - startOfDay(at)) / DAY);
+    if (!at) return;
+    const index = Math.round((today - startOfDay(at)) / DAY);
     if (index >= 0 && index < 14) buckets[index] += 1;
   };
 
@@ -347,7 +360,7 @@ function renderMissed() {
         <div class="missed-item">
           <div>
             <strong>${esc(item.question.text)}</strong>
-            <small>${esc(quizData[item.question.theme]?.title)} · ${levelLabel(item.question.level)} · bonne réponse : ${esc(item.question.correct)}</small>
+            <small>${esc(quizData[item.question.theme]?.title)} · ${esc(levelLabel(item.question.level))} · bonne réponse : ${esc(item.question.correct)}</small>
           </div>
           <span class="pill pill-danger">${item.wrong} erreur(s) · ${item.people} élève(s)</span>
         </div>
@@ -438,22 +451,25 @@ function openUser(id) {
       <div class="j-history-item">
         <div>
           <strong>${esc(quizData[entry.theme]?.title || entry.theme)}</strong>
-          <small>${levelLabel(entry.level)} · ${formatDate(Number(entry.at))}</small>
+          <small>${esc(levelLabel(entry.level))} · ${formatDate(Number(entry.at))}</small>
         </div>
-        <span class="j-score ${percent >= PASS_PERCENT ? "good" : "bad"}">${entry.score}/${entry.total} · ${percent} %</span>
+        <span class="j-score ${percent >= PASS_PERCENT ? "good" : "bad"}">${esc(entry.score)}/${esc(entry.total)} · ${percent} %</span>
       </div>
     `;
   }).join("") || `<p class="empty-chart">Aucun quiz.</p>`;
 
-  const exams = [...user.exams].reverse().slice(0, 5).map(exam => `
-    <div class="j-history-item">
-      <div>
-        <strong>Examen de ${exam.total} questions</strong>
-        <small>${formatDate(Number(exam.at))} · ${formatTime(exam.used)} / ${formatTime(exam.limit)}</small>
+  const exams = [...user.exams].reverse().slice(0, 5).map(exam => {
+    const percent = examPercent(exam);
+    return `
+      <div class="j-history-item">
+        <div>
+          <strong>Examen de ${esc(exam.total)} questions</strong>
+          <small>${formatDate(Number(exam.at))} · ${formatTime(exam.used)} / ${formatTime(exam.limit)}</small>
+        </div>
+        <span class="j-score ${percent >= PASS_PERCENT ? "good" : "bad"}">${esc(exam.score)}/${esc(exam.total)} · ${percent} %</span>
       </div>
-      <span class="j-score ${exam.percent >= PASS_PERCENT ? "good" : "bad"}">${exam.score}/${exam.total} · ${exam.percent} %</span>
-    </div>
-  `).join("") || `<p class="empty-chart">Aucun examen.</p>`;
+    `;
+  }).join("") || `<p class="empty-chart">Aucun examen.</p>`;
 
   const toReview = Object.keys(user.mistakes).length;
 
@@ -466,10 +482,11 @@ function openUser(id) {
       </div>
     </div>
 
-    <div class="j-stats" style="margin-bottom:16px">
+    <div class="j-stats u-stats">
       <article class="j-stat"><span>🏁</span><strong>${user.progressPct} %</strong><small>Progression</small></article>
       <article class="j-stat"><span>📝</span><strong>${user.quizzes}</strong><small>Quiz réalisés</small></article>
       <article class="j-stat"><span>⏱️</span><strong>${user.exams.length}</strong><small>Examens</small></article>
+      <article class="j-stat"><span>💻</span><strong>${user.practice}</strong><small>Exercices réussis</small></article>
       <article class="j-stat"><span>📌</span><strong>${toReview}</strong><small>Questions à revoir</small></article>
     </div>
 
@@ -506,14 +523,14 @@ function closeUser() {
 function csvCell(value) {
   let text = String(value ?? "");
   // Protection contre l'injection de formules dans Excel
-  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return `"${text.replaceAll('"', '""')}"`;
 }
 
 function exportCsv() {
   const headers = [
     "Nom", "Email", "Progression (%)", "Niveaux réussis", "Quiz", "Examens",
-    "Meilleur score (%)", "Moyenne (%)", "Inscrit le", "Dernière connexion"
+    "Exercices réussis", "Meilleur score (%)", "Moyenne (%)", "Inscrit le", "Dernière connexion"
   ];
 
   const rows = visibleUsers.map(user => [
@@ -523,6 +540,7 @@ function exportCsv() {
     user.completed,
     user.quizzes,
     user.exams.length,
+    user.practice,
     user.best,
     user.avg === null ? "" : user.avg,
     user.createdAt ? new Date(user.createdAt).toISOString().slice(0, 10) : "",
@@ -584,12 +602,16 @@ document.addEventListener("keydown", event => {
 });
 
 onAuthStateChanged(auth, async user => {
+  const token = ++authToken;
+
   $("admin-login").hidden = Boolean(user);
   $("admin-logout").hidden = !user;
   $("admin-user-name").textContent = user ? user.displayName || user.email || "" : "";
 
   if (!user) {
     users = [];
+    visibleUsers = [];
+    closeUser();
     showGate(
       "Espace réservé à l'administrateur",
       "Connecte-toi avec le compte Google administrateur pour continuer."
@@ -598,11 +620,12 @@ onAuthStateChanged(auth, async user => {
   }
 
   const admin = await checkIsAdmin(user);
+  if (token !== authToken) return; // un autre changement de connexion est arrivé entre-temps
 
   if (!admin) {
     showGate(
       "Accès refusé 🚫",
-      `Ce compte n'est pas administrateur. Si c'est bien le tien, crée dans Firestore le document admins/${user.uid} (voir les instructions), puis recharge cette page.`
+      "Ce compte n'est pas administrateur. Connecte-toi avec le compte Google administrateur (adresse e-mail vérifiée)."
     );
     return;
   }
