@@ -672,7 +672,7 @@ $("admin-login").addEventListener("click", async () => {
 });
 
 $("admin-logout").addEventListener("click", () => signOut(auth));
-$("a-refresh").addEventListener("click", loadUsers);
+$("a-refresh").addEventListener("click", () => { loadUsers(); loadReports(); });
 $("a-export").addEventListener("click", exportCsv);
 $("a-search").addEventListener("input", renderTable);
 $("a-sort").addEventListener("change", renderTable);
@@ -700,6 +700,7 @@ onAuthStateChanged(auth, async user => {
   if (!user) {
     users = [];
     visibleUsers = [];
+    reports = [];
     closeUser();
     showGate(
       "Espace réservé à l'administrateur",
@@ -722,5 +723,5 @@ onAuthStateChanged(auth, async user => {
   $("admin-gate").hidden = true;
   $("admin-dashboard").hidden = false;
 
-  await loadUsers();
+  await Promise.all([loadUsers(), loadReports()]);
 });
