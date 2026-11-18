@@ -1,4 +1,3 @@
-
 // configstore.js
 
 import {
@@ -7,6 +6,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   serverTimestamp
 } from "./firebase-config.js";
 
@@ -23,6 +23,7 @@ import {
 const MAX_HISTORY = 60;
 const MAX_EXAMS = 20;
 
+// Doit être identique à l'e-mail utilisé dans firestore.rules
 const ADMIN_EMAIL = "oulimatat17@gmail.com";
 
 // ------------------------------------------------------------
@@ -99,6 +100,10 @@ export function normalizeProgress(progress = {}) {
 
     mistakes: plainObject(source.mistakes),
     coursesRead: plainObject(source.coursesRead),
+
+    // ✅ CORRECTION : ce champ était oublié, donc jamais sauvegardé
+    practiceDone: plainObject(source.practiceDone),
+
     totalQuizzes: Number(source.totalQuizzes || 0)
   };
 
@@ -110,10 +115,7 @@ export function normalizeProgress(progress = {}) {
         level => normalized.completedLevels[`${previous}-${level}`]
       );
 
-      if (
-        previousDone &&
-        !normalized.unlockedThemes.includes(theme)
-      ) {
+      if (previousDone && !normalized.unlockedThemes.includes(theme)) {
         normalized.unlockedThemes.push(theme);
       }
     }
@@ -169,9 +171,7 @@ function splitDisplayName(displayName) {
 // Profil utilisateur
 // ------------------------------------------------------------
 
-export async function createOrUpdateUserProfile(
-  user = auth.currentUser
-) {
+export async function createOrUpdateUserProfile(user = auth.currentUser) {
   if (!user) {
     throw new Error("Aucun utilisateur connecté.");
   }
@@ -179,9 +179,7 @@ export async function createOrUpdateUserProfile(
   const userRef = doc(db, "users", user.uid);
   const snapshot = await getDoc(userRef);
 
-  const { firstName, lastName } = splitDisplayName(
-    user.displayName
-  );
+  const { firstName, lastName } = splitDisplayName(user.displayName);
 
   if (!snapshot.exists()) {
     await setDoc(userRef, {
@@ -202,19 +200,16 @@ export async function createOrUpdateUserProfile(
   const data = snapshot.data();
   const progress = normalizeProgress(data.progress);
 
-  await setDoc(
-    userRef,
-    {
-      uid: user.uid,
-      firstName,
-      lastName,
-      fullName: user.displayName || data.fullName || "Utilisateur",
-      email: user.email || data.email || "",
-      lastLoginAt: serverTimestamp(),
-      progress
-    },
-    { merge: true }
-  );
+  // updateDoc remplace entièrement le champ "progress"
+  await updateDoc(userRef, {
+    uid: user.uid,
+    firstName,
+    lastName,
+    fullName: user.displayName || data.fullName || "Utilisateur",
+    email: user.email || data.email || "",
+    lastLoginAt: serverTimestamp(),
+    progress
+  });
 
   return progress;
 }
@@ -224,9 +219,7 @@ export async function createOrUpdateUserProfile(
 // ------------------------------------------------------------
 
 async function loadProgress(user) {
-  const snapshot = await getDoc(
-    doc(db, "users", user.uid)
-  );
+  const snapshot = await getDoc(doc(db, "users", user.uid));
 
   return normalizeProgress(
     snapshot.exists() ? snapshot.data().progress : {}
@@ -237,10 +230,7 @@ async function loadProgress(user) {
 // Sauvegarde de la progression
 // ------------------------------------------------------------
 
-export async function saveUserProgress(
-  progress,
-  user = auth.currentUser
-) {
+export async function saveUserProgress(progress, user = auth.currentUser) {
   if (!user) {
     throw new Error("Aucun utilisateur connecté.");
   }
@@ -248,15 +238,13 @@ export async function saveUserProgress(
   const userRef = doc(db, "users", user.uid);
   const normalized = normalizeProgress(progress);
 
-  await setDoc(
-    userRef,
-    {
-      progress: normalized,
-      totalQuizzes: normalized.totalQuizzes,
-      lastProgressUpdate: serverTimestamp()
-    },
-    { merge: true }
-  );
+  // ✅ CORRECTION : updateDoc REMPLACE le champ "progress".
+  // Avec setDoc + merge, les clés supprimées (ex. mistakes) revenaient.
+  await updateDoc(userRef, {
+    progress: normalized,
+    totalQuizzes: normalized.totalQuizzes,
+    lastProgressUpdate: serverTimestamp()
+  });
 
   return normalized;
 }
@@ -284,10 +272,7 @@ function clearMistakes(progress, ids = []) {
   });
 }
 
-export async function recordRevisionResult({
-  wrongIds = [],
-  correctIds = []
-}) {
+export async function recordRevisionResult({ wrongIds = [], correctIds = [] }) {
   const user = getCurrentUser();
   const progress = await loadProgress(user);
 
@@ -320,20 +305,29 @@ export async function markCourseRead(theme, level) {
 }
 
 // ------------------------------------------------------------
-// Administrateur
+// Exercices pratiques réussis
+// ------------------------------------------------------------
+
+export async function markExerciseDone(exerciseId) {
+  const user = getCurrentUser();
+  const progress = await loadProgress(user);
+
+  progress.practiceDone[exerciseId] = Date.now();
+
+  return saveUserProgress(progress, user);
+}
+
+// ------------------------------------------------------------
+// Administrateur (la vraie protection est dans firestore.rules)
 // ------------------------------------------------------------
 
 export async function checkIsAdmin(user = auth.currentUser) {
-  if (!user) {
-    return false;
-  }
+  if (!user) return false;
 
-  // Vérification de l'adresse e-mail administrateur.
   const userEmail = user.email?.trim().toLowerCase();
-  const adminEmail = ADMIN_EMAIL.toLowerCase();
 
   return (
-    userEmail === adminEmail &&
+    userEmail === ADMIN_EMAIL.toLowerCase() &&
     user.emailVerified === true
   );
 }
@@ -354,10 +348,7 @@ export async function saveQuizResult({
 
   const normalizedScore = Number(score);
   const total = Number(totalQuestions) || 1;
-
-  const percent = Math.round(
-    (normalizedScore / total) * 100
-  );
+  const percent = Math.round((normalizedScore / total) * 100);
 
   const key = `${theme}-${level}`;
   const passed = normalizedScore / total >= PASS_RATIO;
@@ -367,8 +358,7 @@ export async function saveQuizResult({
     percent
   );
 
-  progress.totalQuizzes =
-    Number(progress.totalQuizzes || 0) + 1;
+  progress.totalQuizzes = Number(progress.totalQuizzes || 0) + 1;
 
   progress.history.push({
     theme,
@@ -403,7 +393,6 @@ export async function saveQuizResult({
       }
 
       progress.currentLevel = nextLevel;
-
     } else if (themeIndex < themeOrder.length - 1) {
       nextTheme = themeOrder[themeIndex + 1];
       nextLevel = levelOrder[0];
@@ -421,10 +410,7 @@ export async function saveQuizResult({
     }
   }
 
-  const savedProgress = await saveUserProgress(
-    progress,
-    user
-  );
+  const savedProgress = await saveUserProgress(progress, user);
 
   return {
     progress: savedProgress,
@@ -456,11 +442,7 @@ export async function recordExamResult({
   progress.exams.push({
     score: Number(score),
     total: Number(total),
-
-    percent: Math.round(
-      (Number(score) / (Number(total) || 1)) * 100
-    ),
-
+    percent: Math.round((Number(score) / (Number(total) || 1)) * 100),
     used: Number(usedSeconds),
     limit: Number(limitSeconds),
     byTheme,
@@ -470,18 +452,6 @@ export async function recordExamResult({
   progress.exams = progress.exams.slice(-MAX_EXAMS);
 
   addMistakes(progress, missedIds);
-
-  return saveUserProgress(progress, user);
-}
-/* ------------------------------------------------------------
-   Exercices pratiques réussis
------------------------------------------------------------- */
-
-export async function markExerciseDone(exerciseId) {
-  const user = getCurrentUser();
-  const progress = await loadProgress(user);
-
-  progress.practiceDone[exerciseId] = Date.now();
 
   return saveUserProgress(progress, user);
 }
