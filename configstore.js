@@ -50,6 +50,7 @@ export const defaultProgress = {
   exams: [],
   mistakes: {},
   coursesRead: {},
+  practiceDone: {},
   totalQuizzes: 0
 };
 
@@ -469,6 +470,18 @@ export async function recordExamResult({
   progress.exams = progress.exams.slice(-MAX_EXAMS);
 
   addMistakes(progress, missedIds);
+
+  return saveUserProgress(progress, user);
+}
+/* ------------------------------------------------------------
+   Exercices pratiques réussis
+------------------------------------------------------------ */
+
+export async function markExerciseDone(exerciseId) {
+  const user = getCurrentUser();
+  const progress = await loadProgress(user);
+
+  progress.practiceDone[exerciseId] = Date.now();
 
   return saveUserProgress(progress, user);
 }
