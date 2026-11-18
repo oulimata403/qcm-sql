@@ -3,7 +3,7 @@
 import { themeOrder, levelOrder, quizData } from "./questions.js";
 import { exercises, SEED_SQL } from "./exercises.js";
 import { markExerciseDone } from "./configstore.js";
-import { reportHref } from "./settings.js";
+import { openReport } from "./reports.js";
 
 const SQLJS_BASE = "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/";
 const MAX_ROWS = 100;
@@ -31,6 +31,7 @@ let bound = false;
 let theme = themeOrder[0];
 let level = levelOrder[0];
 let index = 0;
+let exerciseReport = null;
 const drafts = {};
 
 /* ============================================================
@@ -464,12 +465,16 @@ function renderExercise() {
   $("pr-prev").disabled = index === 0;
   $("pr-next").disabled = index === exercises_.length - 1;
 
-  $("pr-report").href = reportHref(`Signalement - exercice ${exercise.id}`, [
-    "Type : exercice pratique",
-    `Identifiant : ${exercise.id}`,
-    `Énoncé : ${exercise.prompt}`,
-    `Solution attendue : ${exercise.solution}`
-  ]);
+  // Signalement de l'exercice (envoyé dans Firestore au clic)
+  exerciseReport = [
+    `Signalement - exercice ${exercise.id}`,
+    [
+      "Type : exercice pratique",
+      `Identifiant : ${exercise.id}`,
+      `Énoncé : ${exercise.prompt}`,
+      `Solution attendue : ${exercise.solution}`
+    ]
+  ];
 
   renderDots();
 }
@@ -529,6 +534,11 @@ function bindEvents() {
   $("pr-check").addEventListener("click", verify);
   $("pr-hint-btn").addEventListener("click", showHint);
   $("pr-solution-btn").addEventListener("click", showSolution);
+
+  $("pr-report").addEventListener("click", event => {
+    event.preventDefault();
+    if (exerciseReport) openReport(...exerciseReport);
+  });
 
   $("pr-reset").addEventListener("click", () => {
     $("pr-editor").value = "";
