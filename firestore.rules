@@ -37,6 +37,36 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Signalements d'erreurs : tout utilisateur connecté peut en créer,
+    // seul l'administrateur peut les lire, les modifier ou les supprimer.
+    match /reports/{reportId} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly([
+          'userId', 'userEmail', 'userName', 'type', 'itemId',
+          'title', 'details', 'comment', 'page', 'status', 'createdAt'
+        ])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'new'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.userEmail is string
+        && request.resource.data.userName is string
+        && request.resource.data.type is string
+        && request.resource.data.type.size() <= 40
+        && request.resource.data.itemId is string
+        && request.resource.data.itemId.size() <= 100
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 300
+        && request.resource.data.details is string
+        && request.resource.data.details.size() <= 2000
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() >= 3
+        && request.resource.data.comment.size() <= 1000
+        && request.resource.data.page is string
+        && request.resource.data.page.size() <= 300;
+
+      allow read, update, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
