@@ -4,6 +4,8 @@ import {
   auth,
   googleProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged
 } from "./firebase-config.js";
@@ -17,7 +19,7 @@ import {
 } from "./questions.js";
 
 import { getCourse, hasContent } from "./courses.js";
-import { reportHref } from "./settings.js";
+import { openReport } from "./reports.js";
 import { initPractice, showPractice } from "./practice.js";
 
 import {
@@ -79,6 +81,7 @@ let revisionFilter = "all";
 
 // Cours
 let openedCourse = null;
+let courseReport = null;
 
 /* ============================================================
    Éléments HTML
@@ -203,10 +206,12 @@ function questionReportLines(question) {
   ];
 }
 
+// Bouton « Signaler une erreur » : ouvre la fenêtre de signalement (enregistré dans Firestore)
 function reportLink(subject, lines) {
-  const link = makeElement("a", "report-link", "🚩 Signaler une erreur");
-  link.href = reportHref(subject, lines);
-  link.title = "Ouvre un email déjà rédigé pour signaler un problème";
+  const link = makeElement("button", "report-link", "🚩 Signaler une erreur");
+  link.type = "button";
+  link.title = "Envoie un signalement à l'administrateur";
+  link.addEventListener("click", () => openReport(subject, lines));
   return link;
 }
 
@@ -310,6 +315,42 @@ function updateRevisionBadge() {
   const count = Object.keys(userProgress.mistakes || {}).length;
   $("revision-count").textContent = String(count);
   $("revision-count").hidden = !currentUser || count === 0;
+}
+
+async function loginWithGoogle() {
+  try {
+    await signInWithPopup(auth, googleProvider);
+  } catch (error) {
+    console.error("Erreur connexion Google :", error);
+
+    const code = error?.code || "";
+
+    // Popup bloquée ou environnement non compatible : on passe par la redirection
+    if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") {
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } catch (redirectError) {
+        alert(`Connexion impossible : ${redirectError?.code || redirectError?.message}`);
+        return;
+      }
+    }
+
+    // Fermeture volontaire de la fenêtre : pas de message d'erreur
+    if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return;
+
+    const hints = {
+      "auth/unauthorized-domain":
+        "Ce domaine n'est pas autorisé : ajoute-le dans Firebase → Authentication → Paramètres → Domaines autorisés.",
+      "auth/operation-not-allowed":
+        "La connexion Google n'est pas activée dans Firebase → Authentication → Méthode de connexion.",
+      "auth/network-request-failed": "Problème de connexion internet."
+    };
+
+    alert(
+      `Connexion impossible\n\nCode : ${code || "inconnu"}\n\n${hints[code] || error?.message || String(error)}`
+    );
+  }
 }
 
 /* ============================================================
@@ -1331,6 +1372,7 @@ function renderCoursesHome() {
   $("courses-home").hidden = false;
   $("courses-home").replaceChildren();
   openedCourse = null;
+  courseReport = null;
 
   themeOrder.forEach((theme, index) => {
     const card = makeElement("article", `course-card theme-${index + 1}`);
@@ -1418,11 +1460,16 @@ function openCourse(theme, level) {
   $("course-reader").hidden = false;
 
   $("course-title").textContent = `${quizData[theme].title} — ${levelLabel(level)}`;
-  $("course-report").href = reportHref(`Signalement - fiche ${theme}.${level}`, [
-    "Type : fiche de cours",
-    `Fiche : ${quizData[theme].title} — ${levelLabel(level)}`,
-    `Identifiant : ${theme}.${level}`
-  ]);
+
+  // Signalement de la fiche (envoyé dans Firestore au clic)
+  courseReport = [
+    `Signalement - fiche ${theme}.${level}`,
+    [
+      "Type : fiche de cours",
+      `Fiche : ${quizData[theme].title} — ${levelLabel(level)}`,
+      `Identifiant : ${theme}.${level}`
+    ]
+  ];
 
   const meta = [];
   if (course.duration) meta.push(`⏱️ ${course.duration}`);
@@ -1657,17 +1704,13 @@ function init() {
     }
   });
 
-  // Compte
-  $("google-login-button").addEventListener("click", async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Erreur connexion Google :", error);
-      alert(
-        `Connexion impossible\n\nCode : ${error?.code || "code_inconnu"}\n\nMessage : ${error?.message || String(error)}`
-      );
-    }
+  // Résultat d'une connexion par redirection (si la popup a été bloquée)
+  getRedirectResult(auth).catch(error => {
+    console.error("Erreur après redirection :", error);
   });
+
+  // Compte
+  $("google-login-button").addEventListener("click", loginWithGoogle);
 
   $("logout-button").addEventListener("click", async () => {
     try {
@@ -1740,6 +1783,11 @@ function init() {
 
   // Cours
   $("course-back").addEventListener("click", renderCoursesHome);
+
+  $("course-report").addEventListener("click", event => {
+    event.preventDefault();
+    if (courseReport) openReport(...courseReport);
+  });
 
   $("course-read-button").addEventListener("click", async () => {
     if (!openedCourse) return;
