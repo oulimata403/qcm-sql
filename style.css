@@ -49,9 +49,10 @@ body {
 
 body.modal-open { overflow: hidden; }
 
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { border: 0; }
-button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible {
+button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 3px;
 }
@@ -170,7 +171,15 @@ code {
 /* ---------- Sections génériques ---------- */
 .view { padding-top: 34px; }
 #view-quiz.view { padding-top: 0; }
-section { margin-bottom: 64px; scroll-margin-top: 90px; }
+
+/* Ancrage : décalage pour l'en-tête collant (toutes les <section>) */
+section { scroll-margin-top: 90px; }
+
+/* ✅ CORRECTION : la grande marge ne s'applique plus qu'aux deux blocs de la
+   page d'accueil. Avant, la règle « section { margin-bottom: 64px } » touchait
+   aussi les cartes admin (.a-card) et d'autres sections internes. */
+#themes, #quiz { margin-bottom: 64px; }
+
 .section-heading { margin-bottom: 24px; }
 .section-heading h2 { margin: 0 0 6px; color: var(--forest); font-size: 34px; }
 .section-heading p, .intro { margin: 0; color: var(--muted); }
@@ -386,9 +395,6 @@ section { margin-bottom: 64px; scroll-margin-top: 90px; }
 .ring-bg { fill: none; stroke: #eee3c9; stroke-width: 12; }
 .ring-fg { fill: none; stroke: url(#ringGradient); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
 .ring-text { fill: var(--forest); font-size: 26px; font-weight: 900; }
-#ringGradient stop:first-child { stop-color: #0a8a5f; }
-#ringGradient stop:last-child { stop-color: #ffbf1f; }
-#areaGradient stop { stop-color: #0a8a5f; }
 
 .j-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .j-stat { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 16px; border: 1px solid var(--border); border-left: 5px solid var(--gold); border-radius: 16px; background: #fff; }
@@ -456,7 +462,9 @@ section { margin-bottom: 64px; scroll-margin-top: 90px; }
 .kpi strong { display: block; color: var(--forest); font-size: 28px; line-height: 1.2; }
 .kpi small { color: var(--muted); font-weight: 700; }
 .a-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.a-card { padding: 20px; border: 1px solid var(--border); border-radius: 18px; background: #fff; }
+
+/* ✅ CORRECTION : les cartes admin sont des <section>, on s'assure qu'elles n'ont aucune marge parasite */
+.a-card { min-width: 0; margin: 0; padding: 20px; border: 1px solid var(--border); border-radius: 18px; background: #fff; }
 .a-card.full { grid-column: 1 / -1; }
 .a-card h3 { margin: 0 0 4px; color: var(--forest); font-size: 17px; }
 .a-card > small { display: block; margin-bottom: 12px; color: var(--muted); }
@@ -484,44 +492,9 @@ section { margin-bottom: 64px; scroll-margin-top: 90px; }
 .u-head .avatar { width: 52px; height: 52px; font-size: 22px; }
 .u-head h2 { margin: 0; color: var(--forest); }
 .u-head p { margin: 0; color: var(--muted); }
+.u-stats { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin-bottom: 16px; }
 
 .site-footer { padding: 28px 16px; color: #cfdcd5; background: var(--forest); text-align: center; font-size: 13px; }
-
-/* ---------- Responsive ---------- */
-@media (max-width: 960px) {
-  .theme-grid { grid-template-columns: repeat(2, 1fr); }
-  .hero-grid { grid-template-columns: 1fr; }
-  .code-card { display: none; }
-  .kpis { grid-template-columns: repeat(2, 1fr); }
-  .a-grid, .courses-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 800px) {
-  .level-grid, .j-two { grid-template-columns: 1fr; }
-  .j-top { grid-template-columns: 1fr; }
-  .j-stats, .exam-stats { grid-template-columns: repeat(2, 1fr); }
-  .rev-stats { grid-template-columns: 1fr; }
-  .navbar { align-items: flex-start; flex-direction: column; padding: 14px 0; }
-  .account-actions { width: 100%; flex-direction: column; align-items: stretch; }
-  .user-area .button, .account-actions > .button { width: 100%; }
-  .site-header { position: static; }
-  .a-bar { grid-template-columns: 130px 1fr 70px; }
-}
-
-@media (max-width: 620px) {
-  .theme-grid { grid-template-columns: 1fr; }
-  .quiz-shell, .panel, .course-reader { padding: 20px; }
-  .modal-dialog { padding: 22px 16px; }
-  .quiz-header, .quiz-meta, .navigation, .result-actions { align-items: stretch; flex-direction: column; }
-  .navigation .button, .result-actions .button { width: 100%; }
-  .exam-bar { flex-wrap: wrap; }
-  .j-bar, .j-bar.wide { grid-template-columns: 100px 1fr 54px; }
-  .kpis { grid-template-columns: 1fr; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
 
 /* ============================================================
    Zone Pratique + bouton « Signaler une erreur »
@@ -560,7 +533,42 @@ section { margin-bottom: 64px; scroll-margin-top: 90px; }
 .pr-table-item strong { color: var(--forest); }
 .pr-table-item small { color: var(--muted); }
 
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .theme-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-grid { grid-template-columns: 1fr; }
+  .code-card { display: none; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .a-grid, .courses-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 800px) {
+  .level-grid, .j-two { grid-template-columns: 1fr; }
+  .j-top { grid-template-columns: 1fr; }
+  .j-stats, .exam-stats { grid-template-columns: repeat(2, 1fr); }
+  .u-stats { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+  .rev-stats { grid-template-columns: 1fr; }
+  .navbar { align-items: flex-start; flex-direction: column; padding: 14px 0; }
+  .account-actions { width: 100%; flex-direction: column; align-items: stretch; }
+  .user-area .button, .account-actions > .button { width: 100%; }
+  .site-header { position: static; }
+  .a-bar { grid-template-columns: 130px 1fr 70px; }
   .pr-tables { grid-template-columns: 1fr; }
   .navigation .report-link { order: 3; }
+}
+
+@media (max-width: 620px) {
+  .theme-grid { grid-template-columns: 1fr; }
+  .quiz-shell, .panel, .course-reader { padding: 20px; }
+  .modal-dialog { padding: 22px 16px; }
+  .quiz-header, .quiz-meta, .navigation, .result-actions { align-items: stretch; flex-direction: column; }
+  .navigation .button, .result-actions .button { width: 100%; }
+  .exam-bar { flex-wrap: wrap; }
+  .j-bar, .j-bar.wide { grid-template-columns: 100px 1fr 54px; }
+  .kpis { grid-template-columns: 1fr; }
+  .missed-item { flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
