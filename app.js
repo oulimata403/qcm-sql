@@ -17,6 +17,8 @@ import {
 } from "./questions.js";
 
 import { getCourse, hasContent } from "./courses.js";
+import { reportHref } from "./settings.js";
+import { initPractice, showPractice } from "./practice.js";
 
 import {
   defaultProgress,
@@ -34,7 +36,7 @@ import {
    Constantes et état
 ============================================================ */
 
-const VIEWS = ["quiz", "exam", "revision", "courses"];
+const VIEWS = ["quiz", "exam", "revision", "courses", "practice"];
 const EXAM_COUNTS = [10, 20, 30];
 const SECONDS_PER_QUESTION = 45;
 const PASS_PERCENT = Math.round(PASS_RATIO * 100);
@@ -85,7 +87,7 @@ let openedCourse = null;
 const ids = [
   "google-login-button", "logout-button", "user-area", "user-name", "user-avatar",
   "journey-button", "admin-link", "revision-count", "hero",
-  "view-quiz", "view-exam", "view-revision", "view-courses",
+  "view-quiz", "view-exam", "view-revision", "view-courses", "view-practice", "course-report",
   "theme-grid", "level-panel", "quiz-panel", "results-panel", "empty-state",
   "theme-title", "theme-description", "levels-container", "quiz-title", "quiz-badge",
   "question-counter", "score-live", "progress-fill", "question-container",
@@ -191,6 +193,23 @@ function statCard(icon, value, label) {
   return `<article class="j-stat"><span>${icon}</span><strong>${value}</strong><small>${label}</small></article>`;
 }
 
+function questionReportLines(question) {
+  return [
+    "Type : question de quiz",
+    `Identifiant : ${question.id || "inconnu"}`,
+    `Question : ${question.text}`,
+    `Réponse attendue par la plateforme : ${question.correct}`,
+    `Explication affichée : ${question.explanation || ""}`
+  ];
+}
+
+function reportLink(subject, lines) {
+  const link = makeElement("a", "report-link", "🚩 Signaler une erreur");
+  link.href = reportHref(subject, lines);
+  link.title = "Ouvre un email déjà rédigé pour signaler un problème";
+  return link;
+}
+
 function getStats() {
   const completedCount = Object.values(userProgress.completedLevels || {}).filter(Boolean).length;
   const totalLevels = themeOrder.length * levelOrder.length;
@@ -258,6 +277,7 @@ function showView(name, tab = name) {
   if (name === "exam" && !examRunning) renderExamSetup();
   if (name === "revision") renderRevision();
   if (name === "courses") renderCoursesHome();
+  if (name === "practice") showPractice();
 
   window.scrollTo({ top: 0, behavior: "smooth" });
   return true;
@@ -519,6 +539,9 @@ function renderQuestion() {
   });
 
   $("question-container").append(title, options);
+  $("question-container").appendChild(
+    reportLink(`Signalement - question ${question.id}`, questionReportLines(question))
+  );
 
   if (isValidated) {
     const correct = answers[currentIndex] === question.correct;
@@ -722,7 +745,8 @@ function renderReviewInto(container, questions, answerList) {
       status,
       answer,
       correct,
-      explanation
+      explanation,
+      reportLink(`Signalement - question ${question.id}`, questionReportLines(question))
     );
 
     container.appendChild(article);
@@ -1259,7 +1283,12 @@ function renderRevision() {
         }
       });
 
-      body.append(correct, explanation, master);
+      body.append(
+        correct,
+        explanation,
+        master,
+        reportLink(`Signalement - question ${entry.id}`, questionReportLines({ ...question, id: entry.id }))
+      );
       details.append(summary, body);
       group.appendChild(details);
     });
@@ -1389,6 +1418,11 @@ function openCourse(theme, level) {
   $("course-reader").hidden = false;
 
   $("course-title").textContent = `${quizData[theme].title} — ${levelLabel(level)}`;
+  $("course-report").href = reportHref(`Signalement - fiche ${theme}.${level}`, [
+    "Type : fiche de cours",
+    `Fiche : ${quizData[theme].title} — ${levelLabel(level)}`,
+    `Identifiant : ${theme}.${level}`
+  ]);
 
   const meta = [];
   if (course.duration) meta.push(`⏱️ ${course.duration}`);
@@ -1615,6 +1649,14 @@ function closeJourney() {
 ============================================================ */
 
 function init() {
+  initPractice({
+    getUser: () => currentUser,
+    getProgress: () => userProgress,
+    setProgress: progress => {
+      userProgress = normalizeProgress(progress);
+    }
+  });
+
   // Compte
   $("google-login-button").addEventListener("click", async () => {
     try {
@@ -1753,6 +1795,7 @@ function init() {
 
       if (activeView === "exam" && !examRunning) renderExamSetup();
       if (activeView === "revision") renderRevision();
+      if (activeView === "practice") showPractice();
       if (activeView === "courses" && !openedCourse) renderCoursesHome();
 
       const savedTheme = userProgress.currentTheme;
