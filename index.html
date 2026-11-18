@@ -37,6 +37,7 @@
       <button class="tab" data-view="exam" type="button">⏱️ Mode examen</button>
       <button class="tab" data-view="revision" type="button">🔁 Révision <span id="revision-count" class="tab-badge" hidden>0</span></button>
       <button class="tab" data-view="courses" type="button">📖 Fiches de cours</button>
+      <button class="tab" data-view="practice" type="button">💻 Pratique</button>
     </div>
   </div>
 
@@ -288,11 +289,80 @@
       <h2 id="course-title"></h2>
       <p id="course-meta" class="course-meta"></p>
       <div id="course-body"></div>
+      <a id="course-report" class="report-link" href="#">🚩 Signaler une erreur dans cette fiche</a>
       <div class="result-actions">
         <button id="course-read-button" class="button button-success" type="button" hidden>✓ J'ai lu cette fiche</button>
         <button id="course-quiz-button" class="button" type="button" hidden>Passer au quiz de ce niveau →</button>
       </div>
     </article>
+  </main>
+
+  <!-- ================= VUE : PRATIQUE ================= -->
+  <main id="view-practice" class="container view" hidden>
+    <div class="section-heading">
+      <h2>💻 Pratique SQL</h2>
+      <p>Écris de vraies requêtes et vois le résultat tout de suite. Tout s'exécute dans ton navigateur, sur une base d'entraînement qui se remet à zéro à chaque essai : tu ne peux rien casser.</p>
+    </div>
+
+    <div id="pr-status" class="gate">
+      <div class="empty-icon">⚙️</div>
+      <p id="pr-status-text">Chargement…</p>
+      <button id="pr-retry" class="button" type="button" hidden>Réessayer</button>
+    </div>
+
+    <div id="pr-app" hidden>
+      <p id="pr-progress" class="exam-summary"></p>
+
+      <div class="field">
+        <label>Thème</label>
+        <div id="pr-themes" class="chips"></div>
+      </div>
+
+      <div class="field">
+        <label>Niveau</label>
+        <div id="pr-levels" class="chips"></div>
+      </div>
+
+      <div class="panel">
+        <div class="pr-head">
+          <span id="pr-counter" class="pill"></span>
+          <div id="pr-dots" class="exam-nav" aria-label="Exercices du niveau"></div>
+        </div>
+
+        <h3 id="pr-title"></h3>
+        <p id="pr-prompt" class="pr-prompt"></p>
+
+        <textarea id="pr-editor" class="pr-editor" rows="6" spellcheck="false" autocomplete="off" autocapitalize="off"
+          placeholder="Écris ta requête SQL ici…  (Ctrl + Entrée pour exécuter)" aria-label="Éditeur de requête SQL"></textarea>
+
+        <div class="pr-actions">
+          <button id="pr-run" class="button" type="button">▶ Exécuter</button>
+          <button id="pr-check" class="button button-success" type="button">✓ Vérifier ma réponse</button>
+          <button id="pr-hint-btn" class="button button-gold" type="button">💡 Indice</button>
+          <button id="pr-solution-btn" class="button button-outline" type="button">👁 Solution</button>
+          <button id="pr-reset" class="button button-outline" type="button">↺ Effacer</button>
+        </div>
+
+        <p id="pr-feedback" class="pr-feedback" role="status" aria-live="polite"></p>
+        <div id="pr-hint" class="callout tip" hidden></div>
+        <div id="pr-solution" class="pr-solution" hidden></div>
+
+        <h4 class="sub-title">Résultat</h4>
+        <div id="pr-result"></div>
+
+        <div class="navigation">
+          <button id="pr-prev" class="button button-secondary" type="button">← Précédent</button>
+          <a id="pr-report" class="report-link" href="#">🚩 Signaler une erreur</a>
+          <button id="pr-next" class="button" type="button">Suivant →</button>
+        </div>
+      </div>
+
+      <details class="panel">
+        <summary class="pr-summary">📚 Les tables disponibles</summary>
+        <p class="admin-note">Clique sur « Aperçu » pour voir le contenu d'une table. Le moteur utilisé est SQLite : la syntaxe de base (SELECT, JOIN, GROUP BY…) est la même que sous MySQL, PostgreSQL ou SQL Server. Quelques détails changent, par exemple LIMIT au lieu de TOP.</p>
+        <div id="pr-tables" class="pr-tables"></div>
+      </details>
+    </div>
   </main>
 
   <!-- ================= MON PARCOURS (fenêtre) ================= -->
