@@ -572,3 +572,20 @@ section { scroll-margin-top: 90px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+/* ---------- Signalements ---------- */
+button.report-link { border: 0; background: none; cursor: pointer; font-family: inherit; }
+.report-dialog { width: min(560px, 100%); }
+.report-dialog h2 { margin: 0 0 6px; color: var(--forest); }
+.report-target { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+.report-textarea {
+  width: 100%; min-height: 120px; padding: 12px 14px; border: 2px solid var(--border);
+  border-radius: 12px; color: var(--ink); background: #fff; resize: vertical;
+}
+.report-textarea:focus { border-color: var(--gold-dark); outline: none; }
+.report-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.report-item:last-child { border-bottom: 0; }
+.report-item.done { opacity: 0.6; }
+.report-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.report-item small { display: block; margin-top: 2px; color: var(--muted); }
+.report-comment { margin: 10px 0; padding: 10px 12px; border-left: 4px solid var(--gold-dark); border-radius: 0 10px 10px 0; background: var(--gold-soft); }
+.report-details { margin: 8px 0; padding: 12px; overflow-x: auto; border-radius: 10px; color: #f5ecd4; background: #0a2a23; font: 13px/1.6 Consolas, "Courier New", monospace; white-space: pre-wrap; }
