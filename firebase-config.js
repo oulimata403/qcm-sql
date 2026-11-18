@@ -7,6 +7,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged
 } from
@@ -18,6 +20,8 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  addDoc,
+  deleteDoc,
   serverTimestamp,
   increment,
   collection,
@@ -52,6 +56,8 @@ export {
   getDoc,
   setDoc,
   updateDoc,
+  addDoc,
+  deleteDoc,
   serverTimestamp,
   increment,
   collection,
@@ -60,6 +66,8 @@ export {
   orderBy,
   limit,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged
 };
